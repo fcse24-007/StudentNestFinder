@@ -1,0 +1,265 @@
+package com.example.studentnestfinder.ui.listingdetail
+
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.example.studentnestfinder.db.dao.ListingDao
+import com.example.studentnestfinder.db.dao.UserDao
+import com.example.studentnestfinder.db.entities.Listing
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ListingDetailScreen(
+    listingId: Int,
+    listingDao: ListingDao,
+    userDao: UserDao,
+    onReserveClick: (Int) -> Unit,
+    onChatClick: (providerId: Int, providerName: String) -> Unit,
+    onBack: () -> Unit
+) {
+    val listing by listingDao.getById(listingId).collectAsState(initial = null)
+    var providerName by remember { mutableStateOf("Provider") }
+
+    LaunchedEffect(listing) {
+        listing?.let {
+            val provider = userDao.getById(it.providerId)
+            providerName = provider?.name ?: "Provider"
+        }
+    }
+
+    if (listing == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFFBB86FC))
+        }
+        return
+    }
+
+    val currentListing = listing!!
+
+    Scaffold(
+        containerColor = Color(0xFF121212),
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF121212)
+                ),
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
+                title = { Text("Listing Details", color = Color.White) }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color(0xFF121212))
+        ) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                        .background(Color.DarkGray)
+                ) {
+                    Text("Property Image", color = Color.Gray, modifier = Modifier.align(Alignment.Center))
+                }
+
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Surface(
+                        color = Color(0xFFBB86FC),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            "P${currentListing.price.toInt()} / Month",
+                            color = Color.Black,
+                            modifier = Modifier.padding(12.dp),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        currentListing.title,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = Color(0xFFBB86FC),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(currentListing.location, color = Color.Gray, fontSize = 14.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        "About",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        currentListing.description,
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        "Property Details",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    DetailRow("Type:", currentListing.type)
+                    DetailRow("Distance to Campus:", "${currentListing.distanceToCampusKm}km")
+                    DetailRow("Availability:", currentListing.availabilityDate)
+                    DetailRow("Deposit:", "P${currentListing.depositAmount}")
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        "Amenities",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    // Handle amenities (might be comma separated or JSON)
+                    val amenitiesList = try {
+                        if (currentListing.amenities.startsWith("[")) {
+                            // Simple manual parse for seeded JSON
+                            currentListing.amenities.removeSurrounding("[", "]")
+                                .split(",")
+                                .map { it.trim().removeSurrounding("\"") }
+                        } else {
+                            currentListing.amenities.split(", ")
+                        }
+                    } catch (e: Exception) {
+                        listOf(currentListing.amenities)
+                    }
+
+                    Column(modifier = Modifier.padding(top = 8.dp)) {
+                        amenitiesList.forEach { amenity ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = Color(0xFFBB86FC),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(amenity, color = Color.Gray, fontSize = 13.sp)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = { onChatClick(currentListing.providerId, providerName) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF252525)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Chat,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Chat", color = Color.White)
+                        }
+
+                        Button(
+                            onClick = { onReserveClick(currentListing.id) },
+                            enabled = currentListing.status == "AVAILABLE",
+                            modifier = Modifier
+                                .weight(1.5f)
+                                .height(48.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFBB86FC)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                if (currentListing.status == "AVAILABLE") "Reserve Now" else "Reserved",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, color = Color.Gray, fontSize = 14.sp)
+        Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun ListingDetailScreenPreview() {
+    // ListingDetailScreen(listingId = 1, onReserveClick = {}, onChatClick = {}, onBack = {})
+}
+

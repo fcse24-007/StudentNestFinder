@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Core Palette: "Trust & Clarity" -->
+    <!-- Primary (Action): Royal Blue - for buttons like "Book Now" or "Search" -->
+    <color name="primary">#0066FF</color>
+
+    <!-- Secondary (Surface): Off-White/Light Gray - soft and premium feel -->
+    <color name="secondary">#F8F9FA</color>
+
+    <!-- Accent (Urgency/Status): Muted Red - for "Sold Out," "Only 1 left," or "Error" states -->
+    <color name="accent">#E63946</color>
+
+    <!-- Neutral (Text/Borders): Deep Charcoal - better readability than pure black -->
+    <color name="neutral">#212529</color>
+
+    <!-- Additional Utility Colors -->
+    <color name="background_light">#FFFFFF</color>
+    <color name="surface_light">#F8F9FA</color>
+    <color name="border_light">#E9ECEF</color>
+    <color name="text_primary">#212529</color>
+    <color name="text_secondary">#6C757D</color>
+    <color name="success">#28A745</color>
+    <color name="warning">#FFC107</color>
+    <color name="error">#E63946</color>
+
+    <!-- Legacy Colors (kept for compatibility) -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

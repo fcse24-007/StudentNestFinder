@@ -1,0 +1,363 @@
+package com.example.studentnestfinder.ui.home
+
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.studentnestfinder.db.entities.Listing
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+@Suppress("unused")
+fun HomeScreen(
+    viewModel: HomeViewModel,
+    onListingClick: (Int) -> Unit,
+    onProfileClick: () -> Unit,
+    onProviderDashboardClick: () -> Unit
+) {
+    val state by viewModel.uiState.collectAsState()
+    val universities = listOf("All", "UB", "Botho", "BAC", "ISBS", "Boitekanelo")
+
+    Scaffold(
+        containerColor = Color(0xFF121212),
+        topBar = {
+            HomeTopBar(
+                query = state.searchQuery,
+                onQueryChange = viewModel::onSearchQueryChanged,
+                onProfileClick = onProfileClick,
+                onProviderDashboardClick = onProviderDashboardClick
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            item {
+                Text("Find your campus", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                LazyRow(modifier = Modifier.padding(vertical = 12.dp)) {
+                    items(universities) { uni ->
+                        UniversityChip(uni, state.selectedUniversity == uni) {
+                            viewModel.onUniversitySelected(uni)
+                        }
+                    }
+                }
+            }
+
+            items(state.listings) { listing ->
+                ListingCard(listing, onClick = { onListingClick(listing.id) })
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun ListingCard(listing: Listing, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .background(Color.DarkGray)
+            ) {
+                Text("Property Image", color = Color.Gray, modifier = Modifier.align(Alignment.Center))
+
+                Surface(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .align(Alignment.TopEnd),
+                    color = Color(0xFFBB86FC),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        "P${listing.price.toInt()}",
+                        color = Color.Black,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    listing.title,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(listing.location, color = Color.Gray, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        "${listing.distanceToCampusKm}km to Campus",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UniversityChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .padding(end = 8.dp)
+            .clickable { onClick() },
+        color = if (isSelected) Color(0xFFBB86FC) else Color(0xFF252525),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Text(
+            label,
+            color = if (isSelected) Color.Black else Color.White,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeTopBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onProfileClick: () -> Unit,
+    onProviderDashboardClick: () -> Unit
+) {
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color(0xFF121212)
+        ),
+        title = {
+            TextField(
+                value = query,
+                onValueChange = onQueryChange,
+                placeholder = { Text("Search Nests...", color = Color.Gray) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(25.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF252525),
+                    unfocusedContainerColor = Color(0xFF252525),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) }
+            )
+        },
+        actions = {
+            IconButton(onClick = onProviderDashboardClick) {
+                Icon(Icons.Default.Home, contentDescription = "Dashboard", tint = Color.White)
+            }
+            IconButton(onClick = onProfileClick) {
+                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White)
+            }
+        }
+    )
+}
+
+// ===== PREVIEWS (Top-level functions) =====
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun ListingCardPreview() {
+    val sampleListing = Listing(
+        id = 1,
+        providerId = 1,
+        title = "Cozy Studio Near Campus",
+        description = "Beautiful studio apartment",
+        price = 2500f,
+        location = "Gaborone",
+        type = "STUDIO",
+        amenities = "WiFi, Kitchen, Parking",
+        depositAmount = 500,
+        availabilityDate = "2026-05-01",
+        status = "AVAILABLE",
+        distanceToCampusKm = 0.5f
+    )
+    ListingCard(listing = sampleListing, onClick = {})
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun ListingCardPreviewHighPrice() {
+    val sampleListing = Listing(
+        id = 2,
+        providerId = 2,
+        title = "Luxury 2-Bedroom Apartment",
+        description = "Luxury apartment with full amenities",
+        price = 5500f,
+        location = "Broadhurst",
+        type = "FLAT",
+        amenities = "WiFi, AC, Kitchen, Parking, Pool",
+        depositAmount = 1000,
+        availabilityDate = "2026-06-01",
+        status = "AVAILABLE",
+        distanceToCampusKm = 2.3f
+    )
+    ListingCard(listing = sampleListing, onClick = {})
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun UniversityChipSelectedPreview() {
+    UniversityChip(label = "UB", isSelected = true, onClick = {})
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun UniversityChipUnselectedPreview() {
+    UniversityChip(label = "Botho", isSelected = false, onClick = {})
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun UniversityChipsRowPreview() {
+    val universities = listOf("All", "UB", "Botho", "BAC")
+    Row(modifier = Modifier.padding(16.dp)) {
+        universities.forEach { uni ->
+            UniversityChip(uni, uni == "UB") {}
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212, widthDp = 400)
+@Composable
+fun HomeTopBarPreview() {
+    HomeTopBar(query = "", onQueryChange = {}, onProfileClick = {}, onProviderDashboardClick = {})
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212, widthDp = 400)
+@Composable
+fun HomeTopBarWithTextPreview() {
+    HomeTopBar(query = "studio", onQueryChange = {}, onProfileClick = {}, onProviderDashboardClick = {})
+}
+
+// Mock ListingDao for preview
+@Suppress("unused")
+class MockListingDao : com.example.studentnestfinder.db.dao.ListingDao {
+    override suspend fun insert(listing: Listing): Long = 1
+    override suspend fun insertAll(listings: List<Listing>) {}
+    override suspend fun update(listing: Listing) {}
+    override suspend fun updateStatus(listingId: Int, status: String) {}
+    override suspend fun count(): Int = 3
+    override suspend fun findNewMatchingListings(
+        sinceTimestamp: Long,
+        minPrice: Float?,
+        maxPrice: Float?,
+        location: String?,
+        type: String?
+    ): List<Listing> = emptyList()
+    override fun getAllAvailable(): kotlinx.coroutines.flow.Flow<List<Listing>> =
+        kotlinx.coroutines.flow.flowOf(
+            listOf(
+                Listing(
+                    id = 1,
+                    providerId = 1,
+                    title = "Studio 1",
+                    description = "Cozy studio",
+                    price = 2500f,
+                    location = "Gaborone",
+                    type = "STUDIO",
+                    amenities = "WiFi",
+                    depositAmount = 500,
+                    availabilityDate = "2026-05-01",
+                    status = "AVAILABLE",
+                    distanceToCampusKm = 0.5f
+                ),
+                Listing(
+                    id = 2,
+                    providerId = 2,
+                    title = "Apartment 2",
+                    description = "Modern apartment",
+                    price = 3500f,
+                    location = "Broadhurst",
+                    type = "FLAT",
+                    amenities = "AC",
+                    depositAmount = 750,
+                    availabilityDate = "2026-05-15",
+                    status = "AVAILABLE",
+                    distanceToCampusKm = 1.2f
+                ),
+                Listing(
+                    id = 3,
+                    providerId = 3,
+                    title = "House 3",
+                    description = "Spacious house",
+                    price = 5000f,
+                    location = "Tlokweng",
+                    type = "FLAT",
+                    amenities = "Pool",
+                    depositAmount = 1000,
+                    availabilityDate = "2026-06-01",
+                    status = "AVAILABLE",
+                    distanceToCampusKm = 3.0f
+                )
+            )
+        )
+    override fun filter(
+        minPrice: Float?,
+        maxPrice: Float?,
+        location: String?,
+        type: String?
+    ): kotlinx.coroutines.flow.Flow<List<Listing>> =
+        kotlinx.coroutines.flow.flowOf(emptyList())
+    override fun getById(id: Int): kotlinx.coroutines.flow.Flow<Listing?> =
+        kotlinx.coroutines.flow.flowOf(
+            Listing(
+                id = 1,
+                providerId = 1,
+                title = "Sample Listing",
+                description = "Sample description",
+                price = 2500f,
+                location = "Gaborone",
+                type = "STUDIO",
+                amenities = "WiFi, Kitchen",
+                depositAmount = 500,
+                availabilityDate = "2026-05-01",
+                status = "AVAILABLE",
+                distanceToCampusKm = 0.5f
+            )
+        )
+    override fun getByProvider(providerId: Int): kotlinx.coroutines.flow.Flow<List<Listing>> =
+        kotlinx.coroutines.flow.flowOf(emptyList())
+}
+

@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">StudentNestFinder</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_title">My Preferences</string>
+    <string name="notification_settings">Notification Settings</string>
+    <string name="enable_alerts">Enable New Listing Alerts</string>
+    <string name="price_range_label">Price Range (P)</string>
+    <string name="price_min">Min</string>
+    <string name="price_max">Max</string>
+    <string name="location_label">Location</string>
+    <string name="location_hint">e.g. Block 6, Tlokweng</string>
+    <string name="room_type_label">Room Type</string>
+    <string name="save_preferences">Save Preferences</string>
+</resources>
