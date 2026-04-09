@@ -1,5 +1,6 @@
 package com.example.studentnestfinder.ui.provider
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +28,7 @@ import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
 import com.example.studentnestfinder.ui.theme.SecondaryColor
 import com.example.studentnestfinder.ui.theme.TextSecondaryColor
+import com.example.studentnestfinder.validation.InputValidator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +57,7 @@ fun AddListingScreen(
     var deposit by remember { mutableStateOf("") }
     var distance by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("AVAILABLE") }
+    var formError by remember { mutableStateOf<String?>(null) }
 
     val types = listOf("EN_SUITE", "SHARED", "STUDIO", "FLAT")
 
@@ -103,9 +106,9 @@ fun AddListingScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = InputValidator.sanitizeText(it, 120) },
                 label = { Text("Title") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -116,9 +119,9 @@ fun AddListingScreen(
                 )
             )
 
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = InputValidator.sanitizeText(it, 1000) },
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
@@ -133,7 +136,7 @@ fun AddListingScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
                     value = price,
-                    onValueChange = { price = it },
+                    onValueChange = { price = it.filter { char -> char.isDigit() || char == '.' }.take(10) },
                     label = { Text("Price (P)") },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -146,7 +149,7 @@ fun AddListingScreen(
                 )
                 OutlinedTextField(
                     value = deposit,
-                    onValueChange = { deposit = it },
+                    onValueChange = { deposit = it.filter { char -> char.isDigit() }.take(10) },
                     label = { Text("Deposit (P)") },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -161,7 +164,7 @@ fun AddListingScreen(
 
             OutlinedTextField(
                 value = location,
-                onValueChange = { location = it },
+                onValueChange = { location = InputValidator.sanitizeText(it, 120) },
                 label = { Text("Location") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -174,7 +177,7 @@ fun AddListingScreen(
 
             OutlinedTextField(
                 value = distance,
-                onValueChange = { distance = it },
+                onValueChange = { distance = it.filter { char -> char.isDigit() || char == '.' }.take(10) },
                 label = { Text("Distance to Campus (km)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -207,7 +210,7 @@ fun AddListingScreen(
 
             OutlinedTextField(
                 value = amenities,
-                onValueChange = { amenities = it },
+                onValueChange = { amenities = InputValidator.sanitizeText(it, 300) },
                 label = { Text("Amenities (comma separated)") },
                 placeholder = { Text("WiFi, Parking, Laundry") },
                 modifier = Modifier.fillMaxWidth(),
@@ -221,20 +224,36 @@ fun AddListingScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
+            formError?.let {
+                Text(text = it, color = Color.Red)
+            }
 
             Button(
                 onClick = {
-                    if (title.isNotEmpty() && price.isNotEmpty() && location.isNotEmpty()) {
-                        scope.launch {
+                    val validationError = InputValidator.validateListingInput(
+                        title = title,
+                        description = description,
+                        location = location,
+                        price = price,
+                        deposit = deposit.ifBlank { "0" },
+                        distance = distance.ifBlank { "0" }
+                    )
+                    if (validationError != null) {
+                        formError = validationError
+                        return@Button
+                    }
+                    formError = null
+                    scope.launch {
+                        runCatching {
                             val listing = Listing(
                                 id = listingId ?: 0,
                                 providerId = providerId,
-                                title = title,
-                                description = description,
+                                title = title.trim(),
+                                description = description.trim(),
                                 price = price.toFloatOrNull() ?: 0f,
-                                location = location,
+                                location = location.trim(),
                                 type = type,
-                                amenities = amenities,
+                                amenities = amenities.trim(),
                                 depositAmount = deposit.toIntOrNull() ?: 0,
                                 availabilityDate = existingListing?.availabilityDate ?: "2026-05-01",
                                 status = status,
@@ -246,8 +265,10 @@ fun AddListingScreen(
                                 listingDao.update(listing)
                             }
                             onSuccess()
+                        }.onFailure { error ->
+                            Log.e("AddListingScreen", "Failed to save listing", error)
+                            formError = "Failed to save listing. Please try again."
                         }
-                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

@@ -23,6 +23,7 @@ import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
 import com.example.studentnestfinder.ui.theme.SecondaryColor
 import com.example.studentnestfinder.ui.theme.TextSecondaryColor
+import com.example.studentnestfinder.validation.InputValidator
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,6 +46,7 @@ fun BookingPaymentScreen(
     var cardExpiry by remember { mutableStateOf("") }
     var cardCvv by remember { mutableStateOf("") }
     var cardholder by remember { mutableStateOf("") }
+    var paymentError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(listingId) {
         viewModel.loadListing(listingId)
@@ -93,6 +95,9 @@ fun BookingPaymentScreen(
                     if (state.error != null) {
                         Text(state.error!!, color = Color.Red, modifier = Modifier.padding(bottom = 16.dp))
                     }
+                    paymentError?.let {
+                        Text(it, color = Color.Red, modifier = Modifier.padding(bottom = 16.dp))
+                    }
 
                     Card(
                         modifier = Modifier
@@ -134,14 +139,17 @@ fun BookingPaymentScreen(
                     PaymentTextField(
                         value = cardholder,
                         label = "Cardholder Name",
-                        onValueChange = { cardholder = it },
+                        onValueChange = { cardholder = InputValidator.sanitizeText(it, 120) },
                         icon = Icons.Default.Person
                     )
 
                     PaymentTextField(
                         value = cardNumber,
                         label = "Card Number",
-                        onValueChange = { if (it.length <= 16) cardNumber = it },
+                        onValueChange = {
+                            val sanitized = it.filter { c -> c.isDigit() }.take(16)
+                            cardNumber = sanitized
+                        },
                         icon = Icons.Default.CreditCard,
                         keyboardType = KeyboardType.Number,
                         placeholder = "1234 5678 9012 3456"
@@ -154,7 +162,7 @@ fun BookingPaymentScreen(
                         PaymentTextField(
                             value = cardExpiry,
                             label = "Expiry (MM/YY)",
-                            onValueChange = { if (it.length <= 5) cardExpiry = it },
+                            onValueChange = { cardExpiry = it.take(5) },
                             modifier = Modifier.weight(1f),
                             placeholder = "12/25"
                         )
@@ -162,7 +170,7 @@ fun BookingPaymentScreen(
                         PaymentTextField(
                             value = cardCvv,
                             label = "CVV",
-                            onValueChange = { if (it.length <= 4) cardCvv = it },
+                            onValueChange = { cardCvv = it.filter { c -> c.isDigit() }.take(4) },
                             modifier = Modifier.weight(1f),
                             keyboardType = KeyboardType.Number,
                             placeholder = "123"
@@ -193,8 +201,17 @@ fun BookingPaymentScreen(
 
                     Button(
                         onClick = {
-                            if (cardNumber.length == 16 && cardExpiry.isNotEmpty() && cardCvv.length >= 3) {
+                            val validationError = InputValidator.validateCardPayment(
+                                cardholder = cardholder,
+                                cardNumber = cardNumber,
+                                cardExpiry = cardExpiry,
+                                cardCvv = cardCvv
+                            )
+                            if (validationError == null) {
+                                paymentError = null
                                 viewModel.completePayment(listingId, studentId, listing.depositAmount)
+                            } else {
+                                paymentError = validationError
                             }
                         },
                         modifier = Modifier

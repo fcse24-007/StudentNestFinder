@@ -11,6 +11,7 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -142,7 +143,7 @@ fun AppNavigation(
         startDestination = startDestination
     ) {
         composable(Screen.Auth.route) {
-            val authViewModel = AuthViewModel(userDao, database)
+            val authViewModel: AuthViewModel = hiltViewModel()
             AuthScreen(
                 viewModel = authViewModel,
                 onNavigateHome = { role ->
@@ -155,11 +156,7 @@ fun AppNavigation(
         }
 
         composable(Screen.Home.route) {
-            val homeViewModel = HomeViewModel(
-                listingDao = listingDao,
-                preferenceDao = database.userPreferenceDao(),
-                userId = currentUser?.id ?: -1
-            )
+            val homeViewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
                 isProvider = currentUser?.role == "PROVIDER",
                 viewModel = homeViewModel,
@@ -230,7 +227,7 @@ fun AppNavigation(
             arguments = listOf(navArgument("listingId") { type = NavType.IntType })
         ) { backStackEntry ->
             val listingId = backStackEntry.arguments?.getInt("listingId") ?: return@composable
-            val bookingViewModel = com.example.studentnestfinder.ui.booking.BookingViewModel(listingDao, database.reservationDao())
+            val bookingViewModel: com.example.studentnestfinder.ui.booking.BookingViewModel = hiltViewModel()
             
             BookingPaymentScreen(
                 viewModel = bookingViewModel,

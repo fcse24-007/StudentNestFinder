@@ -1,16 +1,20 @@
 package com.example.studentnestfinder.ui.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.studentnestfinder.data.UserSession
 import com.example.studentnestfinder.db.dao.ListingDao
 import com.example.studentnestfinder.db.dao.UserPreferenceDao
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val listingDao: ListingDao,
-    private val preferenceDao: UserPreferenceDao,
-    private val userId: Int
+    private val preferenceDao: UserPreferenceDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -25,21 +29,27 @@ class HomeViewModel(
     private fun loadListings() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            combine(
-                listingDao.getAllAvailable(),
-                preferenceDao.getForUser(userId),
-                searchQuery,
-                selectedLocation
-            ) { listings, preference, query, location ->
-                applyFilters(listings, preference, query, location)
-            }.collect { items ->
-                _uiState.update { state -> state.copy(listings = items, isLoading = false) }
+            val userId = UserSession.currentUserId
+            runCatching {
+                combine(
+                    listingDao.getAllAvailable(),
+                    preferenceDao.getForUser(userId),
+                    searchQuery.debounce(300),
+                    selectedLocation
+                ) { listings, preference, query, location ->
+                    applyFilters(listings, preference, query, location)
+                }.collect { items ->
+                    _uiState.update { state -> state.copy(listings = items, isLoading = false, error = null) }
+                }
+            }.onFailure { error ->
+                Log.e("HomeViewModel", "Failed to load listings", error)
+                _uiState.update { it.copy(isLoading = false, error = "Unable to load listings.") }
             }
         }
     }
 
     fun onSearchQueryChanged(query: String) {
-        val trimmed = query.trim()
+        val trimmed = query.trim().take(100)
         _uiState.update { it.copy(searchQuery = trimmed) }
         searchQuery.value = trimmed
     }

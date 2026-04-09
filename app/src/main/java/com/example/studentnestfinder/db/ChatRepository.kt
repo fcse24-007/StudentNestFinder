@@ -1,5 +1,6 @@
 package com.example.studentnestfinder.db
 
+import android.util.Log
 import com.example.studentnestfinder.db.dao.ChatMessageDao
 import com.example.studentnestfinder.db.entities.ChatMessage
 import com.google.firebase.firestore.FirebaseFirestore
@@ -70,9 +71,9 @@ class ChatRepository(
             "isRead" to false,
             "timestamp" to msg.timestamp
         )
-        docRef.set(firestoreMap).await()
+        runCatching { docRef.set(firestoreMap).await() }
+            .onFailure { Log.e("ChatRepository", "Failed to sync message to Firestore", it) }
 
-        // Optimistic local insert so the UI updates immediately without waiting for Firestore
         chatMessageDao.insert(msg)
     }
 
@@ -90,7 +91,11 @@ class ChatRepository(
                 .collection("messages")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener { snapshot, error ->
-                    if (error != null || snapshot == null) return@addSnapshotListener
+                    if (error != null) {
+                        Log.e("ChatRepository", "Firestore conversation listener error", error)
+                        return@addSnapshotListener
+                    }
+                    if (snapshot == null) return@addSnapshotListener
                     val messages = snapshot.documents.mapNotNull { doc ->
                         try {
                             ChatMessage(
@@ -104,6 +109,7 @@ class ChatRepository(
                                 timestamp = doc.getLong("timestamp") ?: 0L
                             )
                         } catch (_: Exception) {
+                            Log.e("ChatRepository", "Failed to parse Firestore chat message ${doc.id}")
                             null
                         }
                     }
@@ -128,19 +134,23 @@ class ChatRepository(
         chatMessageDao.markConversationRead(convId, currentUserId)
 
         // Also update Firestore so the sender can see the read receipt
-        val batch = firestore.batch()
-        val msgs = firestore.collection("conversations")
-            .document(convId)
-            .collection("messages")
-            .whereEqualTo("receiverId", currentUserId)
-            .whereEqualTo("isRead", false)
-            .get()
-            .await()
+        runCatching {
+            val batch = firestore.batch()
+            val msgs = firestore.collection("conversations")
+                .document(convId)
+                .collection("messages")
+                .whereEqualTo("receiverId", currentUserId)
+                .whereEqualTo("isRead", false)
+                .get()
+                .await()
 
-        msgs.documents.forEach { doc ->
-            batch.update(doc.reference, "isRead", true)
+            msgs.documents.forEach { doc ->
+                batch.update(doc.reference, "isRead", true)
+            }
+            if (!msgs.isEmpty) batch.commit().await()
+        }.onFailure {
+            Log.e("ChatRepository", "Failed to sync read receipts", it)
         }
-        if (!msgs.isEmpty) batch.commit().await()
     }
 
     // ─── Conversation list (for inbox screen) ─────────────────────────────────

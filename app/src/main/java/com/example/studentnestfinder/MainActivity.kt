@@ -18,7 +18,9 @@ import com.example.studentnestfinder.db.AppDatabase
 import com.example.studentnestfinder.ui.navigation.AppNavigation
 import com.example.studentnestfinder.ui.theme.StudentNestTheme
 import com.google.firebase.FirebaseApp
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var database: AppDatabase
 

@@ -65,6 +65,9 @@ fun HomeScreen(
         ) {
             item {
                 Text("Find accommodation by location", color = NeutralColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                state.error?.let {
+                    Text(it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
+                }
                 LazyRow(modifier = Modifier.padding(vertical = 12.dp)) {
                     items(locations) { location ->
                         UniversityChip(location, state.selectedUniversity == location) {
@@ -206,7 +209,7 @@ fun HomeTopBar(
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent
                 ),
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondaryColor) }
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search listings", tint = TextSecondaryColor) }
             )
         },
         actions = {

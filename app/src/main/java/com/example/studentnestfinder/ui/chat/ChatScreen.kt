@@ -30,6 +30,7 @@ import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
 import com.example.studentnestfinder.ui.theme.SecondaryColor
 import com.example.studentnestfinder.ui.theme.TextSecondaryColor
+import com.example.studentnestfinder.validation.InputValidator
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -49,6 +50,7 @@ fun ChatScreen(
     onLogout: () -> Unit
 ) {
     var messageInput by remember { mutableStateOf("") }
+    var messageError by remember { mutableStateOf<String?>(null) }
 
     // format: uid_{min}-{max}_listing_{listingId}
     val parsed = remember(conversationId, currentUserId) {
@@ -135,7 +137,7 @@ fun ChatScreen(
             ) {
                 OutlinedTextField(
                     value = messageInput,
-                    onValueChange = { messageInput = it },
+                    onValueChange = { messageInput = InputValidator.sanitizeText(it, 500) },
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp),
@@ -150,7 +152,7 @@ fun ChatScreen(
                     leadingIcon = {
                         Icon(
                             Icons.Default.AttachFile,
-                            contentDescription = null,
+                            contentDescription = "Attachment",
                             tint = TextSecondaryColor,
                             modifier = Modifier.size(20.dp)
                         )
@@ -160,9 +162,11 @@ fun ChatScreen(
                 val scope = rememberCoroutineScope()
                 IconButton(
                     onClick = {
-                        if (messageInput.isNotBlank()) {
-                            val text = messageInput
+                        val validationError = InputValidator.validateChatMessage(messageInput)
+                        if (validationError == null) {
+                            val text = messageInput.trim()
                             messageInput = ""
+                            messageError = null
                             scope.launch {
                                 chatRepository.sendMessage(
                                     senderId = currentUserId,
@@ -171,6 +175,8 @@ fun ChatScreen(
                                     text = text
                                 )
                             }
+                        } else {
+                            messageError = validationError
                         }
                     },
                     modifier = Modifier
@@ -184,6 +190,13 @@ fun ChatScreen(
                         modifier = Modifier.size(20.dp)
                     )
                 }
+            }
+            messageError?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
             }
         }
     }
