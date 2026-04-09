@@ -3,8 +3,10 @@ package com.example.studentnestfinder
 import android.app.Application
 import androidx.work.*
 import com.example.studentnestfinder.worker.NotificationWorker
+import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
 
+@HiltAndroidApp
 class StudentNestApplication : Application() {
 
     override fun onCreate() {

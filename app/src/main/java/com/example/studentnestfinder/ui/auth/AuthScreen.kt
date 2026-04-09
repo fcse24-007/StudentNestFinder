@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.ui.platform.LocalContext
-import com.example.studentnestfinder.db.AppDatabase
+import com.example.studentnestfinder.db.entities.UserPreference
+import com.example.studentnestfinder.security.BCryptPasswordHasher
 import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
 import com.example.studentnestfinder.ui.theme.SecondaryColor
@@ -124,7 +124,7 @@ fun AuthInput(value: String, label: String, onValueChange: (String) -> Unit, ico
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, color = TextSecondaryColor) },
-        leadingIcon = { Icon(icon, contentDescription = null, tint = PrimaryColor) },
+        leadingIcon = { Icon(icon, contentDescription = "$label icon", tint = PrimaryColor) },
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         colors = TextFieldDefaults.colors(
@@ -157,10 +157,10 @@ fun UniversityDropdown(selectedUniversity: String, onUniversitySelected: (String
             onValueChange = {},
             readOnly = true,
             label = { Text("Select Institution", color = TextSecondaryColor) },
-            leadingIcon = { Icon(Icons.Default.School, contentDescription = null, tint = PrimaryColor) },
+            leadingIcon = { Icon(Icons.Default.School, contentDescription = "Institution icon", tint = PrimaryColor) },
             trailingIcon = {
                 IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = NeutralColor)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Open institutions", tint = NeutralColor)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -209,18 +209,14 @@ fun AuthTab(text: String, selected: Boolean, onClick: () -> Unit) {
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 fun AuthScreenLoginPreview() {
-    val context = LocalContext.current
-    val db = AppDatabase.getInstance(context)
-    val viewModel = AuthViewModel(MockUserDao(), db)
+    val viewModel = AuthViewModel(MockUserDao(), MockUserPreferenceDao(), BCryptPasswordHasher())
     AuthScreen(viewModel = viewModel, onNavigateHome = { })
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 fun AuthScreenSignUpPreview() {
-    val context = LocalContext.current
-    val db = AppDatabase.getInstance(context)
-    val viewModel = AuthViewModel(MockUserDao(), db)
+    val viewModel = AuthViewModel(MockUserDao(), MockUserPreferenceDao(), BCryptPasswordHasher())
     // Trigger sign up mode
     viewModel.toggleMode()
     AuthScreen(viewModel = viewModel, onNavigateHome = { })
@@ -270,4 +266,12 @@ class MockUserDao : com.example.studentnestfinder.db.dao.UserDao {
     override suspend fun getById(id: Int): com.example.studentnestfinder.db.entities.User? = null
     override suspend fun getByStudentId(studentId: String): com.example.studentnestfinder.db.entities.User? = null
     override suspend fun count(): Int = 0
+}
+
+class MockUserPreferenceDao : com.example.studentnestfinder.db.dao.UserPreferenceDao {
+    override suspend fun upsert(preference: UserPreference) {}
+    override fun getForUser(userId: Int): kotlinx.coroutines.flow.Flow<UserPreference?> =
+        kotlinx.coroutines.flow.flowOf(null)
+    override suspend fun getForUserOnce(userId: Int): UserPreference? = null
+    override suspend fun getAllWithNotificationsEnabled(): List<UserPreference> = emptyList()
 }

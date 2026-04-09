@@ -10,7 +10,7 @@ import com.example.studentnestfinder.db.entities.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.security.MessageDigest
+import org.mindrot.jbcrypt.BCrypt
 
 // 1. Helper data class for University variations in Gaborone
 data class UniversityConfig(
@@ -29,7 +29,7 @@ data class UniversityConfig(
         UserPreference::class,
         ChatMessage::class
     ],
-    version = 2, // Incremented to 2 to handle schema updates
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -62,6 +62,8 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
                 })
+                // Intentional destructive migration: seeded/demo data is regenerated and
+                // password hashes are re-seeded with bcrypt for this app.
                 .fallbackToDestructiveMigration()
                 .build()
                 .also { INSTANCE = it }
@@ -73,10 +75,7 @@ abstract class AppDatabase : RoomDatabase() {
  * --- Utility and Seeding Functions ---
  */
 
-fun md5(input: String): String {
-    val bytes = MessageDigest.getInstance("MD5").digest(input.toByteArray())
-    return bytes.joinToString("") { "%02x".format(it) }
-}
+fun hashPassword(input: String): String = BCrypt.hashpw(input, BCrypt.gensalt())
 
 suspend fun seedUsers(db: AppDatabase) {
     // List of Gaborone Institutions
@@ -114,7 +113,7 @@ suspend fun seedUsers(db: AppDatabase) {
             studentId = "${config.idPrefix}${idx}",
             name = name,
             email = "$firstName$idx@${config.emailDomain}",
-            passwordHash = md5("password$idx"),
+            passwordHash = hashPassword("password$idx"),
             role = "STUDENT",
             university = config.name
         )
@@ -126,7 +125,7 @@ suspend fun seedUsers(db: AppDatabase) {
             studentId = "PRV001",
             name = "Modise Properties",
             email = "modise@provider.bw",
-            passwordHash = md5("provider123"),
+            passwordHash = hashPassword("provider123"),
             role = "PROVIDER",
             university = "N/A"
         ),
@@ -134,7 +133,7 @@ suspend fun seedUsers(db: AppDatabase) {
             studentId = "PRV002",
             name = "Gaborone Student Homes",
             email = "gsh@provider.bw",
-            passwordHash = md5("provider456"),
+            passwordHash = hashPassword("provider456"),
             role = "PROVIDER",
             university = "N/A"
         )

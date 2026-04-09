@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.hilt.android)
 }
 
 android {
@@ -59,6 +60,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // ── Room ──────────────────────────────────────────────────────────
     val roomVersion = "2.6.1"
@@ -74,6 +76,9 @@ dependencies {
     // ── ViewModel + Coroutines ────────────────────────────────────────
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    ksp("com.google.dagger:hilt-compiler:2.51.1")
+    implementation("org.mindrot:jbcrypt:0.4")
 
     // ── Coil (image loading) ──────────────────────────────────────────
     implementation("io.coil-kt:coil-compose:2.5.0")
@@ -83,6 +88,6 @@ dependencies {
 
     // ── Debug only ────────────────────────────────────────────────────
     debugImplementation("androidx.compose.ui:ui-tooling")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
-
 

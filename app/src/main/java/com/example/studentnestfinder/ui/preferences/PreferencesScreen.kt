@@ -18,6 +18,7 @@ import com.example.studentnestfinder.R
 import com.example.studentnestfinder.db.dao.UserPreferenceDao
 import com.example.studentnestfinder.db.entities.UserPreference
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
+import com.example.studentnestfinder.validation.InputValidator
 import kotlinx.coroutines.launch
 
 // Color Constants
@@ -49,6 +50,7 @@ fun PreferencesScreen(
     var location by remember { mutableStateOf("") }
     var preferredType by remember { mutableStateOf("") }
     var notificationsEnabled by remember { mutableStateOf(true) }
+    var formError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(preference) {
         preference?.let {
@@ -135,7 +137,7 @@ fun PreferencesScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = minPrice,
-                    onValueChange = { minPrice = it },
+                    onValueChange = { minPrice = it.filter { c -> c.isDigit() || c == '.' }.take(8) },
                     label = { Text(context.getString(R.string.price_min)) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -149,7 +151,7 @@ fun PreferencesScreen(
                 )
                 OutlinedTextField(
                     value = maxPrice,
-                    onValueChange = { maxPrice = it },
+                    onValueChange = { maxPrice = it.filter { c -> c.isDigit() || c == '.' }.take(8) },
                     label = { Text(context.getString(R.string.price_max)) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -170,7 +172,7 @@ fun PreferencesScreen(
             )
             OutlinedTextField(
                 value = location,
-                onValueChange = { location = it },
+                onValueChange = { location = InputValidator.sanitizeText(it, 120) },
                 placeholder = { Text(context.getString(R.string.location_hint)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -213,16 +215,25 @@ fun PreferencesScreen(
             }
 
             Spacer(modifier = Modifier.weight(1f))
+            formError?.let {
+                Text(text = it, color = Colors.Accent)
+            }
 
             Button(
                 onClick = {
+                    val validationError = InputValidator.validatePreferences(minPrice, maxPrice)
+                    if (validationError != null) {
+                        formError = validationError
+                        return@Button
+                    }
+                    formError = null
                     scope.launch {
                         val updatedPref = UserPreference(
                             id = preference?.id ?: 0,
                             userId = userId,
                             minPrice = minPrice.toFloatOrNull() ?: 0f,
                             maxPrice = maxPrice.toFloatOrNull() ?: 5000f,
-                            preferredLocation = location,
+                            preferredLocation = location.trim(),
                             preferredType = preferredType,
                             notificationsEnabled = notificationsEnabled,
                             lastCheckedTimestamp = preference?.lastCheckedTimestamp ?: System.currentTimeMillis()
