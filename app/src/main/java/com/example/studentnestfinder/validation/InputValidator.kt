@@ -1,5 +1,7 @@
 package com.example.studentnestfinder.validation
 
+import java.util.Calendar
+
 object InputValidator {
     private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$")
     private val studentIdRegex = Regex("^[A-Za-z0-9]{4,20}$")
@@ -54,6 +56,14 @@ object InputValidator {
         if (!cardNumber.matches(Regex("^\\d{16}$"))) return "Card number must be 16 digits."
         if (!cardExpiry.matches(Regex("^(0[1-9]|1[0-2])/\\d{2}$"))) return "Expiry must be in MM/YY format."
         if (!cardCvv.matches(Regex("^\\d{3,4}$"))) return "CVV must be 3 or 4 digits."
+        val month = cardExpiry.substringBefore("/").toIntOrNull() ?: return "Expiry must be valid."
+        val year = cardExpiry.substringAfter("/").toIntOrNull() ?: return "Expiry must be valid."
+        val now = Calendar.getInstance()
+        val currentYear = now.get(Calendar.YEAR) % 100
+        val currentMonth = now.get(Calendar.MONTH) + 1
+        if (year < currentYear || (year == currentYear && month < currentMonth)) {
+            return "Card is expired."
+        }
         return null
     }
 

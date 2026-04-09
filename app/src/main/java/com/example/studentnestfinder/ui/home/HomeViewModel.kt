@@ -18,13 +18,13 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     companion object {
         private const val INVALID_USER_ID = -1
-        private const val SEARCH_DEBOUNCE_MS = 300L
+        private const val SEARCH_DEBOUNCE_MILLIS = 300L
     }
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
     private val searchQuery = MutableStateFlow("")
-    private val debouncedSearchQuery = searchQuery.debounce(SEARCH_DEBOUNCE_MS)
+    private val debouncedSearchQuery = searchQuery.debounce(SEARCH_DEBOUNCE_MILLIS)
     private val selectedLocation = MutableStateFlow("All")
 
     init {
