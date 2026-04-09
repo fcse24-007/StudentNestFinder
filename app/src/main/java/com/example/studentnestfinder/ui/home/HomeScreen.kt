@@ -16,27 +16,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.studentnestfinder.db.entities.Listing
+import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
+import com.example.studentnestfinder.ui.theme.BorderLightColor
+import com.example.studentnestfinder.ui.theme.NeutralColor
+import com.example.studentnestfinder.ui.theme.PrimaryColor
+import com.example.studentnestfinder.ui.theme.SecondaryColor
+import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Suppress("unused")
 fun HomeScreen(
+    isProvider: Boolean,
     viewModel: HomeViewModel,
     onListingClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
-    onProviderDashboardClick: () -> Unit
+    onProviderDashboardClick: () -> Unit,
+    onOpenDrawer: () -> Unit,
+    onHelpClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val universities = listOf("All", "UB", "Botho", "BAC", "ISBS", "Boitekanelo")
+    val locations = listOf("All", "Block 6", "Block 7", "Broadhurst", "Tlokweng", "Mogoditshane")
 
     Scaffold(
-        containerColor = Color(0xFF121212),
+        containerColor = SecondaryColor,
         topBar = {
             HomeTopBar(
                 query = state.searchQuery,
                 onQueryChange = viewModel::onSearchQueryChanged,
                 onProfileClick = onProfileClick,
-                onProviderDashboardClick = onProviderDashboardClick
+                showProviderDashboard = isProvider,
+                onProviderDashboardClick = onProviderDashboardClick,
+                onOpenDrawer = onOpenDrawer,
+                onHelpClick = onHelpClick,
+                onFaqClick = onFaqClick,
+                onLogout = onLogout
             )
         }
     ) { paddingValues ->
@@ -48,11 +64,11 @@ fun HomeScreen(
             contentPadding = PaddingValues(0.dp)
         ) {
             item {
-                Text("Find your campus", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Find accommodation by location", color = NeutralColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 LazyRow(modifier = Modifier.padding(vertical = 12.dp)) {
-                    items(universities) { uni ->
-                        UniversityChip(uni, state.selectedUniversity == uni) {
-                            viewModel.onUniversitySelected(uni)
+                    items(locations) { location ->
+                        UniversityChip(location, state.selectedUniversity == location) {
+                            viewModel.onLocationSelected(location)
                         }
                     }
                 }
@@ -73,27 +89,27 @@ fun ListingCard(listing: Listing, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
-                    .background(Color.DarkGray)
+                    .background(BorderLightColor)
             ) {
-                Text("Property Image", color = Color.Gray, modifier = Modifier.align(Alignment.Center))
+                Text("Property Image", color = TextSecondaryColor, modifier = Modifier.align(Alignment.Center))
 
                 Surface(
                     modifier = Modifier
                         .padding(12.dp)
                         .align(Alignment.TopEnd),
-                    color = Color(0xFFBB86FC),
+                    color = PrimaryColor,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         "P${listing.price.toInt()}",
-                        color = Color.Black,
+                        color = Color.White,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         fontWeight = FontWeight.Bold
                     )
@@ -103,7 +119,7 @@ fun ListingCard(listing: Listing, onClick: () -> Unit) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     listing.title,
-                    color = Color.White,
+                    color = NeutralColor,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -111,20 +127,20 @@ fun ListingCard(listing: Listing, onClick: () -> Unit) {
                     Icon(
                         Icons.Default.LocationOn,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = TextSecondaryColor,
                         modifier = Modifier.size(14.dp)
                     )
-                    Text(listing.location, color = Color.Gray, fontSize = 14.sp)
+                    Text(listing.location, color = TextSecondaryColor, fontSize = 14.sp)
                     Spacer(modifier = Modifier.width(16.dp))
                     Icon(
                         Icons.Default.Info,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = TextSecondaryColor,
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
                         "${listing.distanceToCampusKm}km to Campus",
-                        color = Color.Gray,
+                        color = TextSecondaryColor,
                         fontSize = 14.sp
                     )
                 }
@@ -139,12 +155,12 @@ fun UniversityChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .padding(end = 8.dp)
             .clickable { onClick() },
-        color = if (isSelected) Color(0xFFBB86FC) else Color(0xFF252525),
+        color = if (isSelected) PrimaryColor else BorderLightColor,
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(
             label,
-            color = if (isSelected) Color.Black else Color.White,
+            color = if (isSelected) Color.White else NeutralColor,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
@@ -156,40 +172,58 @@ fun HomeTopBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onProfileClick: () -> Unit,
-    onProviderDashboardClick: () -> Unit
+    showProviderDashboard: Boolean,
+    onProviderDashboardClick: () -> Unit,
+    onOpenDrawer: () -> Unit,
+    onHelpClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFF121212)
+            containerColor = SecondaryColor
         ),
+        navigationIcon = {
+            IconButton(onClick = onOpenDrawer) {
+                Icon(Icons.Default.Menu, contentDescription = "Navigation drawer", tint = NeutralColor)
+            }
+        },
         title = {
             TextField(
                 value = query,
                 onValueChange = onQueryChange,
-                placeholder = { Text("Search Nests...", color = Color.Gray) },
+                placeholder = { Text("Search Nests...", color = TextSecondaryColor) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(25.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF252525),
-                    unfocusedContainerColor = Color(0xFF252525),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedTextColor = NeutralColor,
+                    unfocusedTextColor = NeutralColor,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent
                 ),
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) }
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondaryColor) }
             )
         },
         actions = {
-            IconButton(onClick = onProviderDashboardClick) {
-                Icon(Icons.Default.Home, contentDescription = "Dashboard", tint = Color.White)
+            if (showProviderDashboard) {
+                IconButton(onClick = onProviderDashboardClick) {
+                    Icon(Icons.Default.Home, contentDescription = "Dashboard", tint = NeutralColor)
+                }
             }
             IconButton(onClick = onProfileClick) {
-                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White)
+                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = NeutralColor)
             }
+            AppOverflowMenu(
+                onSettingsClick = onProfileClick,
+                onHelpClick = onHelpClick,
+                onFaqClick = onFaqClick,
+                onLogout = onLogout
+            )
         }
     )
 }
@@ -262,13 +296,33 @@ fun UniversityChipsRowPreview() {
 @Preview(showBackground = true, backgroundColor = 0xFF121212, widthDp = 400)
 @Composable
 fun HomeTopBarPreview() {
-    HomeTopBar(query = "", onQueryChange = {}, onProfileClick = {}, onProviderDashboardClick = {})
+    HomeTopBar(
+        query = "",
+        onQueryChange = {},
+        onProfileClick = {},
+        showProviderDashboard = true,
+        onProviderDashboardClick = {},
+        onOpenDrawer = {},
+        onHelpClick = {},
+        onFaqClick = {},
+        onLogout = {}
+    )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212, widthDp = 400)
 @Composable
 fun HomeTopBarWithTextPreview() {
-    HomeTopBar(query = "studio", onQueryChange = {}, onProfileClick = {}, onProviderDashboardClick = {})
+    HomeTopBar(
+        query = "studio",
+        onQueryChange = {},
+        onProfileClick = {},
+        showProviderDashboard = false,
+        onProviderDashboardClick = {},
+        onOpenDrawer = {},
+        onHelpClick = {},
+        onFaqClick = {},
+        onLogout = {}
+    )
 }
 
 // Mock ListingDao for preview
@@ -277,6 +331,7 @@ class MockListingDao : com.example.studentnestfinder.db.dao.ListingDao {
     override suspend fun insert(listing: Listing): Long = 1
     override suspend fun insertAll(listings: List<Listing>) {}
     override suspend fun update(listing: Listing) {}
+    override suspend fun deleteById(listingId: Int, providerId: Int) {}
     override suspend fun updateStatus(listingId: Int, status: String) {}
     override suspend fun count(): Int = 3
     override suspend fun findNewMatchingListings(
@@ -360,4 +415,3 @@ class MockListingDao : com.example.studentnestfinder.db.dao.ListingDao {
     override fun getByProvider(providerId: Int): kotlinx.coroutines.flow.Flow<List<Listing>> =
         kotlinx.coroutines.flow.flowOf(emptyList())
 }
-

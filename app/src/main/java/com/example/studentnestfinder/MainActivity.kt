@@ -11,12 +11,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat
-import androidx.room.Room
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.example.studentnestfinder.data.UserSession
 import com.example.studentnestfinder.db.AppDatabase
 import com.example.studentnestfinder.ui.navigation.AppNavigation
+import com.example.studentnestfinder.ui.theme.StudentNestTheme
 import com.google.firebase.FirebaseApp
 
 class MainActivity : AppCompatActivity() {
@@ -33,16 +33,11 @@ class MainActivity : AppCompatActivity() {
             // Firebase already initialized or no google-services.json
         }
 
-        // Initialize Room Database
-        database = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "student_nest_finder_db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
+        // Initialize Room Database (shared singleton with seeded data)
+        database = AppDatabase.getInstance(applicationContext)
 
         setContent {
+            StudentNestTheme {
             val currentUser by UserSession.currentUser.collectAsState()
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -71,6 +66,7 @@ class MainActivity : AppCompatActivity() {
                 database = database,
                 isLoggedIn = currentUser != null
             )
+            }
         }
     }
 }

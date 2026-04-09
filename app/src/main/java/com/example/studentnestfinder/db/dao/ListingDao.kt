@@ -16,6 +16,9 @@ interface ListingDao {
     @Update
     suspend fun update(listing: Listing)
 
+    @Query("DELETE FROM listings WHERE id = :listingId AND providerId = :providerId")
+    suspend fun deleteById(listingId: Int, providerId: Int)
+
     @Query("SELECT * FROM listings WHERE status = 'AVAILABLE' ORDER BY createdAt DESC")
     fun getAllAvailable(): Flow<List<Listing>>
 

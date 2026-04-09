@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import com.example.studentnestfinder.R
 import com.example.studentnestfinder.db.dao.UserPreferenceDao
 import com.example.studentnestfinder.db.entities.UserPreference
+import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
 import kotlinx.coroutines.launch
 
 // Color Constants
@@ -34,7 +35,10 @@ private object Colors {
 fun PreferencesScreen(
     userId: Int,
     preferenceDao: UserPreferenceDao,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onHelpClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val context = LocalContext.current
     val preference by preferenceDao.getForUser(userId).collectAsState(initial = null)
@@ -78,6 +82,14 @@ fun PreferencesScreen(
                             tint = Colors.Neutral
                         )
                     }
+                },
+                actions = {
+                    AppOverflowMenu(
+                        onSettingsClick = {},
+                        onHelpClick = onHelpClick,
+                        onFaqClick = onFaqClick,
+                        onLogout = onLogout
+                    )
                 }
             )
         }
