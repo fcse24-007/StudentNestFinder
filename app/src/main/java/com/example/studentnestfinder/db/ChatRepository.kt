@@ -84,36 +84,41 @@ class ChatRepository(
         listingId: Int
     ): Flow<List<ChatMessage>> {
         val convId = conversationId(userA, userB, listingId)
+        return callbackFlow {
+            val registration = firestore.collection("conversations")
+                .document(convId)
+                .collection("messages")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null || snapshot == null) return@addSnapshotListener
+                    val messages = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            ChatMessage(
+                                id = doc.id,
+                                conversationId = convId,
+                                senderId = (doc.getLong("senderId") ?: 0).toInt(),
+                                receiverId = (doc.getLong("receiverId") ?: 0).toInt(),
+                                listingId = (doc.getLong("listingId") ?: 0).toInt(),
+                                message = doc.getString("message") ?: "",
+                                isRead = doc.getBoolean("isRead") ?: false,
+                                timestamp = doc.getLong("timestamp") ?: 0L
+                            )
+                        } catch (_: Exception) {
+                            null
+                        }
+                    }
+                    launch { chatMessageDao.insertAll(messages) }
+                }
 
-        // Attach a real-time Firestore listener that feeds into Room
-        firestore.collection("conversations")
-            .document(convId)
-            .collection("messages")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) return@addSnapshotListener
-                val messages = snapshot.documents.mapNotNull { doc ->
-                    try {
-                        ChatMessage(
-                            id = doc.id,
-                            conversationId = convId,
-                            senderId = (doc.getLong("senderId") ?: 0).toInt(),
-                            receiverId = (doc.getLong("receiverId") ?: 0).toInt(),
-                            listingId = (doc.getLong("listingId") ?: 0).toInt(),
-                            message = doc.getString("message") ?: "",
-                            isRead = doc.getBoolean("isRead") ?: false,
-                            timestamp = doc.getLong("timestamp") ?: 0L
-                        )
-                    } catch (e: Exception) { null }
-                }
-                // Sync into Room (runs in a coroutine — fire and forget is fine here)
-                kotlinx.coroutines.GlobalScope.launch {
-                    chatMessageDao.insertAll(messages)
-                }
+            val roomJob = launch {
+                chatMessageDao.getConversation(convId).collect { trySend(it).isSuccess }
             }
 
-        // The UI observes Room — it gets updates whenever Room is written to
-        return chatMessageDao.getConversation(convId)
+            awaitClose {
+                registration.remove()
+                roomJob.cancel()
+            }
+        }
     }
 
     // ─── Mark messages as read ────────────────────────────────────────────────

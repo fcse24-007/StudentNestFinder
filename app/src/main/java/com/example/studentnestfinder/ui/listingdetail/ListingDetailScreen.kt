@@ -22,6 +22,12 @@ import androidx.compose.runtime.getValue
 import com.example.studentnestfinder.db.dao.ListingDao
 import com.example.studentnestfinder.db.dao.UserDao
 import com.example.studentnestfinder.db.entities.Listing
+import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
+import com.example.studentnestfinder.ui.theme.BorderLightColor
+import com.example.studentnestfinder.ui.theme.NeutralColor
+import com.example.studentnestfinder.ui.theme.PrimaryColor
+import com.example.studentnestfinder.ui.theme.SecondaryColor
+import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +37,11 @@ fun ListingDetailScreen(
     userDao: UserDao,
     onReserveClick: (Int) -> Unit,
     onChatClick: (providerId: Int, providerName: String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onHelpClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val listing by listingDao.getById(listingId).collectAsState(initial = null)
     var providerName by remember { mutableStateOf("Provider") }
@@ -45,7 +55,7 @@ fun ListingDetailScreen(
 
     if (listing == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFFBB86FC))
+            CircularProgressIndicator(color = PrimaryColor)
         }
         return
     }
@@ -53,18 +63,26 @@ fun ListingDetailScreen(
     val currentListing = listing!!
 
     Scaffold(
-        containerColor = Color(0xFF121212),
+        containerColor = SecondaryColor,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF121212)
+                    containerColor = SecondaryColor
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NeutralColor)
                     }
                 },
-                title = { Text("Listing Details", color = Color.White) }
+                title = { Text("Listing Details", color = NeutralColor) },
+                actions = {
+                    AppOverflowMenu(
+                        onSettingsClick = onSettingsClick,
+                        onHelpClick = onHelpClick,
+                        onFaqClick = onFaqClick,
+                        onLogout = onLogout
+                    )
+                }
             )
         }
     ) { paddingValues ->
@@ -72,26 +90,26 @@ fun ListingDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFF121212))
+                .background(SecondaryColor)
         ) {
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(250.dp)
-                        .background(Color.DarkGray)
+                        .background(BorderLightColor)
                 ) {
-                    Text("Property Image", color = Color.Gray, modifier = Modifier.align(Alignment.Center))
+                    Text("Property Image", color = TextSecondaryColor, modifier = Modifier.align(Alignment.Center))
                 }
 
                 Column(modifier = Modifier.padding(16.dp)) {
                     Surface(
-                        color = Color(0xFFBB86FC),
+                        color = PrimaryColor,
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             "P${currentListing.price.toInt()} / Month",
-                            color = Color.Black,
+                            color = Color.White,
                             modifier = Modifier.padding(12.dp),
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
@@ -102,7 +120,7 @@ fun ListingDetailScreen(
 
                     Text(
                         currentListing.title,
-                        color = Color.White,
+                        color = NeutralColor,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -113,24 +131,24 @@ fun ListingDetailScreen(
                         Icon(
                             Icons.Default.LocationOn,
                             contentDescription = null,
-                            tint = Color(0xFFBB86FC),
+                            tint = PrimaryColor,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(currentListing.location, color = Color.Gray, fontSize = 14.sp)
+                        Text(currentListing.location, color = TextSecondaryColor, fontSize = 14.sp)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
                         "About",
-                        color = Color.White,
+                        color = NeutralColor,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         currentListing.description,
-                        color = Color.Gray,
+                        color = TextSecondaryColor,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -139,7 +157,7 @@ fun ListingDetailScreen(
 
                     Text(
                         "Property Details",
-                        color = Color.White,
+                        color = NeutralColor,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -153,7 +171,7 @@ fun ListingDetailScreen(
 
                     Text(
                         "Amenities",
-                        color = Color.White,
+                        color = NeutralColor,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -183,11 +201,11 @@ fun ListingDetailScreen(
                                 Icon(
                                     Icons.Default.Check,
                                     contentDescription = null,
-                                    tint = Color(0xFFBB86FC),
+                                    tint = PrimaryColor,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(amenity, color = Color.Gray, fontSize = 13.sp)
+                                Text(amenity, color = TextSecondaryColor, fontSize = 13.sp)
                             }
                         }
                     }
@@ -206,18 +224,18 @@ fun ListingDetailScreen(
                                 .weight(1f)
                                 .height(48.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF252525)
+                                containerColor = BorderLightColor
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.Chat,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = NeutralColor,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Chat", color = Color.White)
+                            Text("Chat", color = NeutralColor)
                         }
 
                         Button(
@@ -227,13 +245,13 @@ fun ListingDetailScreen(
                                 .weight(1.5f)
                                 .height(48.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFBB86FC)
+                                containerColor = PrimaryColor
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
                                 if (currentListing.status == "AVAILABLE") "Reserve Now" else "Reserved",
-                                color = Color.Black,
+                                color = Color.White,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -252,8 +270,8 @@ fun DetailRow(label: String, value: String) {
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, color = Color.Gray, fontSize = 14.sp)
-        Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = TextSecondaryColor, fontSize = 14.sp)
+        Text(value, color = NeutralColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -262,4 +280,3 @@ fun DetailRow(label: String, value: String) {
 fun ListingDetailScreenPreview() {
     // ListingDetailScreen(listingId = 1, onReserveClick = {}, onChatClick = {}, onBack = {})
 }
-

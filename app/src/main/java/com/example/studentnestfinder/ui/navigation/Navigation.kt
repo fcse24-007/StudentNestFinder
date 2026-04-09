@@ -4,6 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,10 +22,11 @@ import com.example.studentnestfinder.db.ChatRepository
 import com.example.studentnestfinder.ui.auth.AuthScreen
 import com.example.studentnestfinder.ui.auth.AuthViewModel
 import com.example.studentnestfinder.ui.booking.BookingPaymentScreen
-import com.example.studentnestfinder.ui.chat.ChatListScreen
 import com.example.studentnestfinder.ui.chat.ChatScreen
 import com.example.studentnestfinder.ui.home.HomeScreen
 import com.example.studentnestfinder.ui.home.HomeViewModel
+import com.example.studentnestfinder.ui.info.FaqScreen
+import com.example.studentnestfinder.ui.info.HelpScreen
 import com.example.studentnestfinder.ui.listingdetail.ListingDetailScreen
 import kotlinx.coroutines.launch
 
@@ -37,14 +45,23 @@ sealed class Screen(val route: String) {
     }
     object Preferences : Screen("preferences")
     object ProviderDashboard : Screen("provider_dashboard")
+    object AddListing : Screen("provider/listing/add")
+    object EditListing : Screen("provider/listing/{listingId}/edit") {
+        fun createRoute(listingId: Int) = "provider/listing/$listingId/edit"
+    }
+    object Help : Screen("help")
+    object Faq : Screen("faq")
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
     database: AppDatabase,
     isLoggedIn: Boolean
 ) {
     val navController = rememberNavController()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
     val currentUser by UserSession.currentUser.collectAsState()
     val startDestination = if (isLoggedIn) Screen.Home.route else Screen.Auth.route
 
@@ -52,6 +69,74 @@ fun AppNavigation(
     val userDao = database.userDao()
     val chatRepository = ChatRepository(database.chatMessageDao())
 
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                NavigationDrawerItem(
+                    label = { Text("Home") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Home.route)
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text("Messages") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.ChatList.route)
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text("Settings") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Preferences.route)
+                    }
+                )
+                if (currentUser?.role == "PROVIDER") {
+                    NavigationDrawerItem(
+                        label = { Text("Landlord Dashboard") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            navController.navigate(Screen.ProviderDashboard.route)
+                        }
+                    )
+                }
+                NavigationDrawerItem(
+                    label = { Text("Help") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Help.route)
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text("FAQ") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Faq.route)
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { Text("Logout") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        UserSession.logout()
+                        navController.navigate(Screen.Auth.route) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+    ) {
     NavHost(
         navController = navController,
         startDestination = startDestination
@@ -60,8 +145,9 @@ fun AppNavigation(
             val authViewModel = AuthViewModel(userDao, database)
             AuthScreen(
                 viewModel = authViewModel,
-                onNavigateHome = {
-                    navController.navigate(Screen.Home.route) {
+                onNavigateHome = { role ->
+                    val target = if (role == "PROVIDER") Screen.ProviderDashboard.route else Screen.Home.route
+                    navController.navigate(target) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
                     }
                 }
@@ -69,8 +155,13 @@ fun AppNavigation(
         }
 
         composable(Screen.Home.route) {
-            val homeViewModel = HomeViewModel(listingDao)
+            val homeViewModel = HomeViewModel(
+                listingDao = listingDao,
+                preferenceDao = database.userPreferenceDao(),
+                userId = currentUser?.id ?: -1
+            )
             HomeScreen(
+                isProvider = currentUser?.role == "PROVIDER",
                 viewModel = homeViewModel,
                 onListingClick = { listingId ->
                     navController.navigate(Screen.ListingDetail.createRoute(listingId))
@@ -80,6 +171,19 @@ fun AppNavigation(
                 },
                 onProviderDashboardClick = {
                     navController.navigate(Screen.ProviderDashboard.route)
+                },
+                onOpenDrawer = { scope.launch { drawerState.open() } },
+                onHelpClick = {
+                    navController.navigate(Screen.Help.route)
+                },
+                onFaqClick = {
+                    navController.navigate(Screen.Faq.route)
+                },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
             )
         }
@@ -102,6 +206,21 @@ fun AppNavigation(
                 },
                 onBack = {
                     navController.popBackStack()
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Preferences.route)
+                },
+                onHelpClick = {
+                    navController.navigate(Screen.Help.route)
+                },
+                onFaqClick = {
+                    navController.navigate(Screen.Faq.route)
+                },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
             )
         }
@@ -124,6 +243,21 @@ fun AppNavigation(
                 },
                 onCancel = {
                     navController.popBackStack()
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Preferences.route)
+                },
+                onHelpClick = {
+                    navController.navigate(Screen.Help.route)
+                },
+                onFaqClick = {
+                    navController.navigate(Screen.Faq.route)
+                },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
             )
         }
@@ -132,11 +266,27 @@ fun AppNavigation(
             com.example.studentnestfinder.ui.chat.ChatListScreen(
                 userId = currentUser?.id ?: -1,
                 chatRepository = chatRepository,
+                userDao = userDao,
                 onChatSelect = { conversationId, recipientName ->
                     navController.navigate(Screen.Chat.createRoute(conversationId, recipientName))
                 },
                 onBack = {
                     navController.popBackStack()
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Preferences.route)
+                },
+                onHelpClick = {
+                    navController.navigate(Screen.Help.route)
+                },
+                onFaqClick = {
+                    navController.navigate(Screen.Faq.route)
+                },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
             )
         }
@@ -157,6 +307,21 @@ fun AppNavigation(
                 chatRepository = chatRepository,
                 onBack = {
                     navController.popBackStack()
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Preferences.route)
+                },
+                onHelpClick = {
+                    navController.navigate(Screen.Help.route)
+                },
+                onFaqClick = {
+                    navController.navigate(Screen.Faq.route)
+                },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
             )
         }
@@ -165,7 +330,15 @@ fun AppNavigation(
             com.example.studentnestfinder.ui.preferences.PreferencesScreen(
                 userId = currentUser?.id ?: -1,
                 preferenceDao = database.userPreferenceDao(),
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onHelpClick = { navController.navigate(Screen.Help.route) },
+                onFaqClick = { navController.navigate(Screen.Faq.route) },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -174,11 +347,76 @@ fun AppNavigation(
                 providerId = currentUser?.id ?: -1,
                 listingDao = listingDao,
                 onListingClick = { listingId ->
-                    navController.navigate(Screen.ListingDetail.createRoute(listingId))
+                    navController.navigate(Screen.EditListing.createRoute(listingId))
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onAddListing = { navController.navigate(Screen.AddListing.route) },
+                onSettingsClick = { navController.navigate(Screen.Preferences.route) },
+                onHelpClick = { navController.navigate(Screen.Help.route) },
+                onFaqClick = { navController.navigate(Screen.Faq.route) },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.AddListing.route) {
+            com.example.studentnestfinder.ui.provider.AddListingScreen(
+                providerId = currentUser?.id ?: -1,
+                listingDao = listingDao,
+                onBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() },
+                onSettingsClick = { navController.navigate(Screen.Preferences.route) },
+                onHelpClick = { navController.navigate(Screen.Help.route) },
+                onFaqClick = { navController.navigate(Screen.Faq.route) },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = Screen.EditListing.route,
+            arguments = listOf(navArgument("listingId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val listingId = backStackEntry.arguments?.getInt("listingId") ?: return@composable
+            com.example.studentnestfinder.ui.provider.AddListingScreen(
+                providerId = currentUser?.id ?: -1,
+                listingDao = listingDao,
+                listingId = listingId,
+                onBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() },
+                onSettingsClick = { navController.navigate(Screen.Preferences.route) },
+                onHelpClick = { navController.navigate(Screen.Help.route) },
+                onFaqClick = { navController.navigate(Screen.Faq.route) },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Help.route) {
+            HelpScreen(
+                onBack = { navController.popBackStack() },
+                onFaqClick = { navController.navigate(Screen.Faq.route) }
+            )
+        }
+
+        composable(Screen.Faq.route) {
+            FaqScreen(
+                onBack = { navController.popBackStack() },
+                onHelpClick = { navController.navigate(Screen.Help.route) }
             )
         }
     }
+    }
 }
-

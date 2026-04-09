@@ -21,16 +21,31 @@ import com.example.studentnestfinder.db.entities.Listing
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
+import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
+import com.example.studentnestfinder.ui.theme.BorderLightColor
+import com.example.studentnestfinder.ui.theme.NeutralColor
+import com.example.studentnestfinder.ui.theme.PrimaryColor
+import com.example.studentnestfinder.ui.theme.SecondaryColor
+import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddListingScreen(
     providerId: Int,
     listingDao: ListingDao,
+    listingId: Int? = null,
     onBack: () -> Unit,
-    onSuccess: () -> Unit
+    onSuccess: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onHelpClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val existingListing by remember(listingId) {
+        if (listingId == null) kotlinx.coroutines.flow.flowOf(null)
+        else listingDao.getById(listingId)
+    }.collectAsState(initial = null)
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
@@ -39,19 +54,42 @@ fun AddListingScreen(
     var amenities by remember { mutableStateOf("") }
     var deposit by remember { mutableStateOf("") }
     var distance by remember { mutableStateOf("") }
-    
+    var status by remember { mutableStateOf("AVAILABLE") }
+
     val types = listOf("EN_SUITE", "SHARED", "STUDIO", "FLAT")
 
+    LaunchedEffect(existingListing) {
+        existingListing?.let {
+            title = it.title
+            description = it.description
+            price = it.price.toInt().toString()
+            location = it.location
+            type = it.type
+            amenities = it.amenities
+            deposit = it.depositAmount.toString()
+            distance = it.distanceToCampusKm.toString()
+            status = it.status
+        }
+    }
+
     Scaffold(
-        containerColor = Color(0xFF121212),
+        containerColor = SecondaryColor,
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212)),
-                title = { Text("Add New Listing", color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = SecondaryColor),
+                title = { Text(if (listingId == null) "Add New Listing" else "Edit Listing", color = NeutralColor) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NeutralColor)
                     }
+                },
+                actions = {
+                    AppOverflowMenu(
+                        onSettingsClick = onSettingsClick,
+                        onHelpClick = onHelpClick,
+                        onFaqClick = onFaqClick,
+                        onLogout = onLogout
+                    )
                 }
             )
         }
@@ -60,7 +98,7 @@ fun AddListingScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFF121212))
+                .background(SecondaryColor)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -70,7 +108,12 @@ fun AddListingScreen(
                 onValueChange = { title = it },
                 label = { Text("Title") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFBB86FC), unfocusedTextColor = Color.White, focusedTextColor = Color.White)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryColor,
+                    unfocusedBorderColor = BorderLightColor,
+                    unfocusedTextColor = NeutralColor,
+                    focusedTextColor = NeutralColor
+                )
             )
 
             OutlinedTextField(
@@ -79,7 +122,12 @@ fun AddListingScreen(
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFBB86FC), unfocusedTextColor = Color.White, focusedTextColor = Color.White)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryColor,
+                    unfocusedBorderColor = BorderLightColor,
+                    unfocusedTextColor = NeutralColor,
+                    focusedTextColor = NeutralColor
+                )
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -89,7 +137,12 @@ fun AddListingScreen(
                     label = { Text("Price (P)") },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFBB86FC), unfocusedTextColor = Color.White, focusedTextColor = Color.White)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PrimaryColor,
+                        unfocusedBorderColor = BorderLightColor,
+                        unfocusedTextColor = NeutralColor,
+                        focusedTextColor = NeutralColor
+                    )
                 )
                 OutlinedTextField(
                     value = deposit,
@@ -97,7 +150,12 @@ fun AddListingScreen(
                     label = { Text("Deposit (P)") },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFBB86FC), unfocusedTextColor = Color.White, focusedTextColor = Color.White)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PrimaryColor,
+                        unfocusedBorderColor = BorderLightColor,
+                        unfocusedTextColor = NeutralColor,
+                        focusedTextColor = NeutralColor
+                    )
                 )
             }
 
@@ -106,7 +164,12 @@ fun AddListingScreen(
                 onValueChange = { location = it },
                 label = { Text("Location") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFBB86FC), unfocusedTextColor = Color.White, focusedTextColor = Color.White)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryColor,
+                    unfocusedBorderColor = BorderLightColor,
+                    unfocusedTextColor = NeutralColor,
+                    focusedTextColor = NeutralColor
+                )
             )
 
             OutlinedTextField(
@@ -115,10 +178,15 @@ fun AddListingScreen(
                 label = { Text("Distance to Campus (km)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFBB86FC), unfocusedTextColor = Color.White, focusedTextColor = Color.White)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryColor,
+                    unfocusedBorderColor = BorderLightColor,
+                    unfocusedTextColor = NeutralColor,
+                    focusedTextColor = NeutralColor
+                )
             )
 
-            Text("Room Type", color = Color(0xFFBB86FC), fontWeight = FontWeight.Bold)
+            Text("Room Type", color = PrimaryColor, fontWeight = FontWeight.Bold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 types.forEach { t ->
                     val isSelected = type == t
@@ -127,11 +195,11 @@ fun AddListingScreen(
                             .weight(1f)
                             .height(40.dp)
                             .clickable { type = t },
-                        color = if (isSelected) Color(0xFFBB86FC) else Color(0xFF252525),
+                        color = if (isSelected) PrimaryColor else BorderLightColor,
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(t.replace("_", " "), color = if (isSelected) Color.Black else Color.White, fontSize = 10.sp)
+                            Text(t.replace("_", " "), color = if (isSelected) Color.White else NeutralColor, fontSize = 10.sp)
                         }
                     }
                 }
@@ -143,7 +211,13 @@ fun AddListingScreen(
                 label = { Text("Amenities (comma separated)") },
                 placeholder = { Text("WiFi, Parking, Laundry") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color(0xFFBB86FC), unfocusedTextColor = Color.White, focusedTextColor = Color.White)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryColor,
+                    unfocusedBorderColor = BorderLightColor,
+                    unfocusedTextColor = NeutralColor,
+                    focusedTextColor = NeutralColor,
+                    unfocusedPlaceholderColor = TextSecondaryColor
+                )
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -153,6 +227,7 @@ fun AddListingScreen(
                     if (title.isNotEmpty() && price.isNotEmpty() && location.isNotEmpty()) {
                         scope.launch {
                             val listing = Listing(
+                                id = listingId ?: 0,
                                 providerId = providerId,
                                 title = title,
                                 description = description,
@@ -161,10 +236,15 @@ fun AddListingScreen(
                                 type = type,
                                 amenities = amenities,
                                 depositAmount = deposit.toIntOrNull() ?: 0,
-                                availabilityDate = "2024-05-01", // Default for now
+                                availabilityDate = existingListing?.availabilityDate ?: "2026-05-01",
+                                status = status,
                                 distanceToCampusKm = distance.toFloatOrNull() ?: 0f
                             )
-                            listingDao.insert(listing)
+                            if (listingId == null) {
+                                listingDao.insert(listing)
+                            } else {
+                                listingDao.update(listing)
+                            }
                             onSuccess()
                         }
                     }
@@ -172,10 +252,10 @@ fun AddListingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBB86FC)),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Create Listing", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(if (listingId == null) "Create Listing" else "Save Listing", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -183,4 +263,3 @@ fun AddListingScreen(
 
 // Re-using simplified clickable surface logic if needed, but since I'm in the same package I can just use clickable.
 // Wait, I need to make sure clickable is imported.
-

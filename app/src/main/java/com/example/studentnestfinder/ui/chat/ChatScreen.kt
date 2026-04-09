@@ -22,7 +22,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.studentnestfinder.db.ChatRepository
+import com.example.studentnestfinder.db.dao.UserDao
 import com.example.studentnestfinder.db.entities.ChatMessage as ChatMessageEntity
+import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
+import com.example.studentnestfinder.ui.theme.BorderLightColor
+import com.example.studentnestfinder.ui.theme.NeutralColor
+import com.example.studentnestfinder.ui.theme.PrimaryColor
+import com.example.studentnestfinder.ui.theme.SecondaryColor
+import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -35,43 +42,65 @@ fun ChatScreen(
     recipientName: String,
     currentUserId: Int,
     chatRepository: ChatRepository,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onHelpClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     var messageInput by remember { mutableStateOf("") }
-    
-    // Parse conversationId to get recipientId and listingId
-    // format: "uid_{min}-{max}_listing_{listingId}"
-    val parts = conversationId.split("_")
-    val uidRange = parts[1].split("-")
-    val listingId = parts[3].toInt()
-    val userA = uidRange[0].toInt()
-    val userB = uidRange[1].toInt()
-    val recipientId = if (userA == currentUserId) userB else userA
 
-    val messagesList by chatRepository.observeConversation(userA, userB, listingId)
+    // format: uid_{min}-{max}_listing_{listingId}
+    val parsed = remember(conversationId, currentUserId) {
+        val regex = Regex("^uid_(\\d+)-(\\d+)_listing_(\\d+)$")
+        regex.find(conversationId)?.destructured?.let { (a, b, listing) ->
+            val userA = a.toIntOrNull() ?: -1
+            val userB = b.toIntOrNull() ?: -1
+            val listingId = listing.toIntOrNull() ?: -1
+            val recipientId = if (userA == currentUserId) userB else userA
+            ParsedConversation(userA, userB, recipientId, listingId)
+        }
+    }
+
+    if (parsed == null || parsed.listingId < 0 || parsed.userA < 0 || parsed.userB < 0) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Invalid conversation.", color = NeutralColor)
+        }
+        return
+    }
+
+    val messagesList by remember(parsed) { chatRepository.observeConversation(parsed.userA, parsed.userB, parsed.listingId) }
         .collectAsState(initial = emptyList())
 
     LaunchedEffect(conversationId) {
-        chatRepository.markRead(userA, userB, listingId, currentUserId)
+        chatRepository.markRead(parsed.userA, parsed.userB, parsed.listingId, currentUserId)
     }
 
     Scaffold(
-        containerColor = Color(0xFF121212),
+        containerColor = SecondaryColor,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF121212)
+                    containerColor = SecondaryColor
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NeutralColor)
                     }
                 },
                 title = {
                     Column {
-                        Text(recipientName, color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Active now", color = Color(0xFFBB86FC), fontSize = 12.sp)
+                        Text(recipientName, color = NeutralColor, fontWeight = FontWeight.Bold)
+                        Text("Active now", color = PrimaryColor, fontSize = 12.sp)
                     }
+                },
+                actions = {
+                    AppOverflowMenu(
+                        onSettingsClick = onSettingsClick,
+                        onHelpClick = onHelpClick,
+                        onFaqClick = onFaqClick,
+                        onLogout = onLogout
+                    )
                 }
             )
         }
@@ -80,7 +109,7 @@ fun ChatScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFF121212))
+                .background(SecondaryColor)
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -95,7 +124,7 @@ fun ChatScreen(
                 }
             }
 
-            HorizontalDivider(color = Color(0xFF252525))
+            HorizontalDivider(color = BorderLightColor)
 
             Row(
                 modifier = Modifier
@@ -110,19 +139,19 @@ fun ChatScreen(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp),
-                    placeholder = { Text("Type a message...", color = Color.Gray) },
+                    placeholder = { Text("Type a message...", color = TextSecondaryColor) },
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFFBB86FC),
-                        unfocusedBorderColor = Color(0xFF252525),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
+                        focusedBorderColor = PrimaryColor,
+                        unfocusedBorderColor = BorderLightColor,
+                        focusedTextColor = NeutralColor,
+                        unfocusedTextColor = NeutralColor
                     ),
                     leadingIcon = {
                         Icon(
                             Icons.Default.AttachFile,
                             contentDescription = null,
-                            tint = Color.Gray,
+                            tint = TextSecondaryColor,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -137,8 +166,8 @@ fun ChatScreen(
                             scope.launch {
                                 chatRepository.sendMessage(
                                     senderId = currentUserId,
-                                    receiverId = recipientId,
-                                    listingId = listingId,
+                                    receiverId = parsed.recipientId,
+                                    listingId = parsed.listingId,
                                     text = text
                                 )
                             }
@@ -146,12 +175,12 @@ fun ChatScreen(
                     },
                     modifier = Modifier
                         .size(48.dp)
-                        .background(Color(0xFFBB86FC), shape = RoundedCornerShape(24.dp))
+                        .background(PrimaryColor, shape = RoundedCornerShape(24.dp))
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Send",
-                        tint = Color.Black,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -177,13 +206,13 @@ fun ChatMessageBubble(message: ChatMessageEntity, isCurrentUser: Boolean) {
                 bottomEnd = 16.dp
             ),
             colors = CardDefaults.cardColors(
-                containerColor = if (isCurrentUser) Color(0xFFBB86FC) else Color(0xFF1E1E1E)
+                containerColor = if (isCurrentUser) PrimaryColor else Color.White
             )
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
                     message.message,
-                    color = if (isCurrentUser) Color.Black else Color.White,
+                    color = if (isCurrentUser) Color.White else NeutralColor,
                     fontSize = 14.sp
                 )
 
@@ -191,7 +220,7 @@ fun ChatMessageBubble(message: ChatMessageEntity, isCurrentUser: Boolean) {
 
                 Text(
                     SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(message.timestamp)),
-                    color = if (isCurrentUser) Color.Black.copy(alpha = 0.7f) else Color.Gray,
+                    color = if (isCurrentUser) Color.White.copy(alpha = 0.7f) else TextSecondaryColor,
                     fontSize = 11.sp
                 )
             }
@@ -204,25 +233,38 @@ fun ChatMessageBubble(message: ChatMessageEntity, isCurrentUser: Boolean) {
 fun ChatListScreen(
     userId: Int,
     chatRepository: ChatRepository,
+    userDao: UserDao,
     onChatSelect: (conversationId: String, recipientName: String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onHelpClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val conversations by chatRepository.observeConversationList(userId)
         .collectAsState(initial = emptyList())
 
     Scaffold(
-        containerColor = Color(0xFF121212),
+        containerColor = SecondaryColor,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF121212)
+                    containerColor = SecondaryColor
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NeutralColor)
                     }
                 },
-                title = { Text("Messages", color = Color.White, fontWeight = FontWeight.Bold) }
+                title = { Text("Messages", color = NeutralColor, fontWeight = FontWeight.Bold) },
+                actions = {
+                    AppOverflowMenu(
+                        onSettingsClick = onSettingsClick,
+                        onHelpClick = onHelpClick,
+                        onFaqClick = onFaqClick,
+                        onLogout = onLogout
+                    )
+                }
             )
         }
     ) { paddingValues ->
@@ -230,19 +272,22 @@ fun ChatListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFF121212))
+                .background(SecondaryColor)
         ) {
             items(conversations) { message ->
-                // In a real app, we'd need to fetch the recipient's name from User table
-                // For this mock/MVP, we'll use a placeholder or part of the message
+                val recipientId = if (message.senderId == userId) message.receiverId else message.senderId
+                var recipientName by remember(recipientId) { mutableStateOf("User $recipientId") }
+                LaunchedEffect(recipientId) {
+                    recipientName = userDao.getById(recipientId)?.name ?: "User $recipientId"
+                }
                 ConversationItem(
                     conversation = ChatConversation(
                         id = message.conversationId,
-                        name = "User ${if (message.senderId == userId) message.receiverId else message.senderId}",
+                        name = recipientName,
                         lastMessage = message.message,
                         time = SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(message.timestamp))
                     ),
-                    onClick = { onChatSelect(message.conversationId, "User ${if (message.senderId == userId) message.receiverId else message.senderId}") }
+                    onClick = { onChatSelect(message.conversationId, recipientName) }
                 )
             }
         }
@@ -264,7 +309,7 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
             modifier = Modifier
@@ -281,12 +326,12 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
                 Surface(
                     modifier = Modifier.size(48.dp),
                     shape = RoundedCornerShape(24.dp),
-                    color = Color(0xFFBB86FC)
+                    color = PrimaryColor
                 ) {
                     Icon(
                         Icons.Default.Person,
                         contentDescription = null,
-                        tint = Color.Black,
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -294,13 +339,13 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         conversation.name,
-                        color = Color.White,
+                        color = NeutralColor,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         conversation.lastMessage,
-                        color = Color.Gray,
+                        color = TextSecondaryColor,
                         fontSize = 13.sp,
                         maxLines = 1,
                         modifier = Modifier.widthIn(max = 200.dp)
@@ -314,7 +359,7 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
             ) {
                 Text(
                     conversation.time,
-                    color = Color.Gray,
+                    color = TextSecondaryColor,
                     fontSize = 12.sp
                 )
                 Surface(
@@ -322,11 +367,11 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
                         .size(20.dp)
                         .padding(top = 4.dp),
                     shape = RoundedCornerShape(10.dp),
-                    color = Color(0xFFBB86FC)
+                    color = PrimaryColor
                 ) {
                     Text(
                         "1",
-                        color = Color.Black,
+                        color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -353,3 +398,9 @@ fun ChatListScreenPreview() {
     // ChatListScreen(onChatSelect = { _, _ -> }, onBack = {})
 }
 
+private data class ParsedConversation(
+    val userA: Int,
+    val userB: Int,
+    val recipientId: Int,
+    val listingId: Int
+)

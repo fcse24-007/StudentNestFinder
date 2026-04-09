@@ -18,17 +18,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.platform.LocalContext
 import com.example.studentnestfinder.db.AppDatabase
+import com.example.studentnestfinder.ui.theme.NeutralColor
+import com.example.studentnestfinder.ui.theme.PrimaryColor
+import com.example.studentnestfinder.ui.theme.SecondaryColor
+import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 
 @Composable
-fun AuthScreen(viewModel: AuthViewModel, onNavigateHome: () -> Unit) {
+fun AuthScreen(viewModel: AuthViewModel, onNavigateHome: (role: String) -> Unit) {
     val state by viewModel.uiState.collectAsState()
 
     if (state.authSuccess) {
-        LaunchedEffect(Unit) { onNavigateHome() }
+        LaunchedEffect(Unit) { onNavigateHome(state.role) }
     }
 
     Scaffold(
-        containerColor = Color(0xFF121212)
+        containerColor = SecondaryColor,
+        topBar = {
+            TopAppBar(
+                title = { Text("StudentNestFinder", color = NeutralColor) }
+            )
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -41,19 +50,19 @@ fun AuthScreen(viewModel: AuthViewModel, onNavigateHome: () -> Unit) {
         ) {
             Text(
                 text = if (state.isLogin) "Login" else "Sign Up",
-                color = Color.White,
+                color = NeutralColor,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold
             )
 
-            Text("Student Nest Finder Gaborone", color = Color.Gray)
+            Text("Student Nest Finder Gaborone", color = TextSecondaryColor)
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Role Toggle
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 AuthTab(text = "Student", selected = state.role == "STUDENT") { viewModel.updateRole("STUDENT") }
-                AuthTab(text = "Provider", selected = state.role == "PROVIDER") { viewModel.updateRole("PROVIDER") }
+                AuthTab(text = "Landlord", selected = state.role == "PROVIDER") { viewModel.updateRole("PROVIDER") }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -72,7 +81,7 @@ fun AuthScreen(viewModel: AuthViewModel, onNavigateHome: () -> Unit) {
 
             AuthInput(
                 value = state.studentId,
-                label = if (state.role == "STUDENT") "Student ID" else "Provider ID",
+                label = if (state.role == "STUDENT") "Student ID" else "Landlord ID",
                 onValueChange = viewModel::updateStudentId,
                 icon = Icons.Default.Badge
             )
@@ -93,16 +102,16 @@ fun AuthScreen(viewModel: AuthViewModel, onNavigateHome: () -> Unit) {
                 onClick = { if (state.isLogin) viewModel.login() else viewModel.register() },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFBB86FC))
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
             ) {
-                if (state.isLoading) CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(24.dp))
-                else Text(if (state.isLogin) "Login" else "Create Account", color = Color.Black, fontWeight = FontWeight.Bold)
+                if (state.isLoading) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                else Text(if (state.isLogin) "Login" else "Create Account", color = Color.White, fontWeight = FontWeight.Bold)
             }
 
             TextButton(onClick = { viewModel.toggleMode() }) {
                 Text(
                     if (state.isLogin) "New here? Create an account" else "Already have an account? Login",
-                    color = Color.LightGray
+                    color = TextSecondaryColor
                 )
             }
         }
@@ -114,16 +123,16 @@ fun AuthInput(value: String, label: String, onValueChange: (String) -> Unit, ico
     TextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = Color.Gray) },
-        leadingIcon = { Icon(icon, contentDescription = null, tint = Color(0xFFBB86FC)) },
+        label = { Text(label, color = TextSecondaryColor) },
+        leadingIcon = { Icon(icon, contentDescription = null, tint = PrimaryColor) },
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFF1E1E1E),
-            unfocusedContainerColor = Color(0xFF1E1E1E),
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            cursorColor = Color(0xFFBB86FC),
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedTextColor = NeutralColor,
+            unfocusedTextColor = NeutralColor,
+            cursorColor = PrimaryColor,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
         ),
@@ -147,20 +156,20 @@ fun UniversityDropdown(selectedUniversity: String, onUniversitySelected: (String
             value = selectedUniversity,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Select Institution", color = Color.Gray) },
-            leadingIcon = { Icon(Icons.Default.School, contentDescription = null, tint = Color(0xFFBB86FC)) },
+            label = { Text("Select Institution", color = TextSecondaryColor) },
+            leadingIcon = { Icon(Icons.Default.School, contentDescription = null, tint = PrimaryColor) },
             trailingIcon = {
                 IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.White)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = NeutralColor)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFF1E1E1E),
-                unfocusedContainerColor = Color(0xFF1E1E1E),
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                cursorColor = Color(0xFFBB86FC),
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedTextColor = NeutralColor,
+                unfocusedTextColor = NeutralColor,
+                cursorColor = PrimaryColor,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
             ),
@@ -169,11 +178,11 @@ fun UniversityDropdown(selectedUniversity: String, onUniversitySelected: (String
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(Color(0xFF1E1E1E))
+            modifier = Modifier.background(Color.White)
         ) {
             universities.forEach { uni ->
                 DropdownMenuItem(
-                    text = { Text(uni, color = Color.White) },
+                    text = { Text(uni, color = NeutralColor) },
                     onClick = {
                         onUniversitySelected(uni)
                         expanded = false
@@ -189,10 +198,10 @@ fun AuthTab(text: String, selected: Boolean, onClick: () -> Unit) {
     Surface(
         modifier = Modifier.padding(4.dp).clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        color = if (selected) Color(0xFFBB86FC) else Color.Transparent,
-        border = if (selected) null else BorderStroke(1.dp, Color.Gray)
+        color = if (selected) PrimaryColor else Color.Transparent,
+        border = if (selected) null else BorderStroke(1.dp, TextSecondaryColor)
     ) {
-        Text(text, color = if (selected) Color.Black else Color.White, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+        Text(text, color = if (selected) Color.White else NeutralColor, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
     }
 }
 
@@ -203,7 +212,7 @@ fun AuthScreenLoginPreview() {
     val context = LocalContext.current
     val db = AppDatabase.getInstance(context)
     val viewModel = AuthViewModel(MockUserDao(), db)
-    AuthScreen(viewModel = viewModel, onNavigateHome = {})
+    AuthScreen(viewModel = viewModel, onNavigateHome = { })
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
@@ -214,7 +223,7 @@ fun AuthScreenSignUpPreview() {
     val viewModel = AuthViewModel(MockUserDao(), db)
     // Trigger sign up mode
     viewModel.toggleMode()
-    AuthScreen(viewModel = viewModel, onNavigateHome = {})
+    AuthScreen(viewModel = viewModel, onNavigateHome = { })
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
@@ -262,4 +271,3 @@ class MockUserDao : com.example.studentnestfinder.db.dao.UserDao {
     override suspend fun getByStudentId(studentId: String): com.example.studentnestfinder.db.entities.User? = null
     override suspend fun count(): Int = 0
 }
-

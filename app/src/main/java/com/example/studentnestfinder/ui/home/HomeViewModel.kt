@@ -3,13 +3,20 @@ package com.example.studentnestfinder.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.studentnestfinder.db.dao.ListingDao
+import com.example.studentnestfinder.db.dao.UserPreferenceDao
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val listingDao: ListingDao) : ViewModel() {
+class HomeViewModel(
+    private val listingDao: ListingDao,
+    private val preferenceDao: UserPreferenceDao,
+    private val userId: Int
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    private val searchQuery = MutableStateFlow("")
+    private val selectedLocation = MutableStateFlow("All")
 
     init {
         loadListings()
@@ -18,21 +25,55 @@ class HomeViewModel(private val listingDao: ListingDao) : ViewModel() {
     private fun loadListings() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            // Observe the database. Any changes (like a room being reserved)
-            // will automatically update the UI.
-            listingDao.getAllAvailable().collect { items ->
-                _uiState.update { it.copy(listings = items, isLoading = false) }
+            combine(
+                listingDao.getAllAvailable(),
+                preferenceDao.getForUser(userId),
+                searchQuery,
+                selectedLocation
+            ) { listings, preference, query, location ->
+                applyFilters(listings, preference, query, location)
+            }.collect { items ->
+                _uiState.update { state -> state.copy(listings = items, isLoading = false) }
             }
         }
     }
 
     fun onSearchQueryChanged(query: String) {
-        _uiState.update { it.copy(searchQuery = query) }
-        // Logic to trigger filter query in DAO can be added here
+        val trimmed = query.trim()
+        _uiState.update { it.copy(searchQuery = trimmed) }
+        searchQuery.value = trimmed
     }
 
-    fun onUniversitySelected(uni: String) {
-        _uiState.update { it.copy(selectedUniversity = uni) }
-        // You can filter listings based on proximity to this campus
+    fun onLocationSelected(location: String) {
+        _uiState.update { it.copy(selectedUniversity = location) }
+        selectedLocation.value = location
+    }
+
+    private fun applyFilters(
+        listings: List<com.example.studentnestfinder.db.entities.Listing>,
+        preference: com.example.studentnestfinder.db.entities.UserPreference?,
+        query: String,
+        location: String
+    ): List<com.example.studentnestfinder.db.entities.Listing> {
+        val search = query.lowercase()
+        return listings.filter { listing ->
+            val matchesSearch = search.isBlank() ||
+                listing.title.lowercase().contains(search) ||
+                listing.location.lowercase().contains(search) ||
+                listing.type.lowercase().contains(search)
+
+            val matchesLocationChip = location == "All" ||
+                listing.location.contains(location, ignoreCase = true)
+
+            val matchesPreference = preference == null || (
+                listing.price >= preference.minPrice &&
+                    listing.price <= preference.maxPrice &&
+                    (preference.preferredLocation.isBlank() ||
+                        listing.location.contains(preference.preferredLocation, ignoreCase = true)) &&
+                    (preference.preferredType.isBlank() || listing.type == preference.preferredType)
+                )
+
+            matchesSearch && matchesLocationChip && matchesPreference
+        }
     }
 }

@@ -17,6 +17,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
+import com.example.studentnestfinder.ui.theme.BorderLightColor
+import com.example.studentnestfinder.ui.theme.NeutralColor
+import com.example.studentnestfinder.ui.theme.PrimaryColor
+import com.example.studentnestfinder.ui.theme.SecondaryColor
+import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -28,7 +34,11 @@ fun BookingPaymentScreen(
     listingId: Int,
     studentId: Int,
     onPaymentComplete: (receiptNumber: String) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onHelpClick: () -> Unit,
+    onFaqClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     var cardNumber by remember { mutableStateOf("") }
@@ -45,18 +55,26 @@ fun BookingPaymentScreen(
     } else if (state.listing != null) {
         val listing = state.listing!!
         Scaffold(
-            containerColor = Color(0xFF121212),
+            containerColor = SecondaryColor,
             topBar = {
                 TopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF121212)
+                        containerColor = SecondaryColor
                     ),
                     navigationIcon = {
                         IconButton(onClick = onCancel) {
-                            Icon(Icons.Default.Close, contentDescription = "Cancel", tint = Color.White)
+                            Icon(Icons.Default.Close, contentDescription = "Cancel", tint = NeutralColor)
                         }
                     },
-                    title = { Text("Complete Booking", color = Color.White) }
+                    title = { Text("Complete Booking", color = NeutralColor) },
+                    actions = {
+                        AppOverflowMenu(
+                            onSettingsClick = onSettingsClick,
+                            onHelpClick = onHelpClick,
+                            onFaqClick = onFaqClick,
+                            onLogout = onLogout
+                        )
+                    }
                 )
             }
         ) { paddingValues ->
@@ -64,12 +82,12 @@ fun BookingPaymentScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(Color(0xFF121212))
+                    .background(SecondaryColor)
                     .padding(16.dp)
             ) {
                 item {
                     if (state.isLoading) {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), color = Color(0xFFBB86FC))
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), color = PrimaryColor)
                     }
                     
                     if (state.error != null) {
@@ -81,12 +99,12 @@ fun BookingPaymentScreen(
                             .fillMaxWidth()
                             .padding(bottom = 24.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 "Booking Summary",
-                                color = Color.White,
+                                color = NeutralColor,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -96,7 +114,7 @@ fun BookingPaymentScreen(
                             SummaryRow("Listing:", listing.title)
                             SummaryRow("Monthly Rent:", "P${listing.price.toInt()}")
                             SummaryRow("Deposit Required:", "P${listing.depositAmount}")
-                            HorizontalDivider(color = Color(0xFF252525), modifier = Modifier.padding(vertical = 12.dp))
+                            HorizontalDivider(color = BorderLightColor, modifier = Modifier.padding(vertical = 12.dp))
                             SummaryRow(
                                 "Total to Pay:",
                                 "P${listing.depositAmount}",
@@ -107,7 +125,7 @@ fun BookingPaymentScreen(
 
                     Text(
                         "Payment Information",
-                        color = Color.White,
+                        color = NeutralColor,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 16.dp)
@@ -162,13 +180,13 @@ fun BookingPaymentScreen(
                         Icon(
                             Icons.Default.Info,
                             contentDescription = null,
-                            tint = Color.Gray,
+                            tint = TextSecondaryColor,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             "By confirming, you agree to the booking terms and conditions.",
-                            color = Color.Gray,
+                            color = TextSecondaryColor,
                             fontSize = 12.sp
                         )
                     }
@@ -183,14 +201,14 @@ fun BookingPaymentScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFBB86FC)
+                            containerColor = PrimaryColor
                         ),
                         enabled = !state.isLoading,
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             "Confirm Payment (P${listing.depositAmount})",
-                            color = Color.Black,
+                            color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -202,18 +220,18 @@ fun BookingPaymentScreen(
                             .height(48.dp)
                             .padding(top = 12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF252525)
+                            containerColor = BorderLightColor
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Cancel", color = Color.White)
+                        Text("Cancel", color = NeutralColor)
                     }
                 }
             }
         }
     } else {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFFBB86FC))
+            CircularProgressIndicator(color = PrimaryColor)
         }
     }
 }
@@ -228,13 +246,13 @@ fun SummaryRow(label: String, value: String, isTotal: Boolean = false) {
     ) {
         Text(
             label,
-            color = Color.Gray,
+            color = TextSecondaryColor,
             fontSize = if (isTotal) 16.sp else 14.sp,
             fontWeight = if (isTotal) FontWeight.Bold else FontWeight.Normal
         )
         Text(
             value,
-            color = if (isTotal) Color(0xFFBB86FC) else Color.White,
+            color = if (isTotal) PrimaryColor else NeutralColor,
             fontSize = if (isTotal) 16.sp else 14.sp,
             fontWeight = if (isTotal) FontWeight.Bold else FontWeight.Normal
         )
@@ -254,23 +272,23 @@ fun PaymentTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = Color.Gray) },
+        label = { Text(label, color = TextSecondaryColor) },
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
         leadingIcon = if (icon != null) {
-            { Icon(icon, contentDescription = null, tint = Color(0xFFBB86FC)) }
+            { Icon(icon, contentDescription = null, tint = PrimaryColor) }
         } else null,
         placeholder = if (placeholder.isNotEmpty()) {
-            { Text(placeholder, color = Color.Gray) }
+            { Text(placeholder, color = TextSecondaryColor) }
         } else null,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFFBB86FC),
-            unfocusedBorderColor = Color(0xFF252525),
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White
+            focusedBorderColor = PrimaryColor,
+            unfocusedBorderColor = BorderLightColor,
+            focusedTextColor = NeutralColor,
+            unfocusedTextColor = NeutralColor
         )
     )
 }
@@ -279,13 +297,13 @@ fun PaymentTextField(
 @Composable
 fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
     Scaffold(
-        containerColor = Color(0xFF121212),
+        containerColor = SecondaryColor,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF121212)
+                    containerColor = SecondaryColor
                 ),
-                title = { Text("Booking Confirmed", color = Color.White) }
+                title = { Text("Booking Confirmed", color = NeutralColor) }
             )
         }
     ) { paddingValues ->
@@ -293,7 +311,7 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFF121212))
+                .background(SecondaryColor)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -301,12 +319,12 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
             Surface(
                 modifier = Modifier.size(80.dp),
                 shape = RoundedCornerShape(50),
-                color = Color(0xFFBB86FC)
+                color = PrimaryColor
             ) {
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
-                    tint = Color.Black,
+                    tint = Color.White,
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -315,7 +333,7 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
 
             Text(
                 "Payment Successful",
-                color = Color.White,
+                color = NeutralColor,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -324,7 +342,7 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
 
             Text(
                 "Your booking has been confirmed",
-                color = Color.Gray,
+                color = TextSecondaryColor,
                 fontSize = 14.sp
             )
 
@@ -333,7 +351,7 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     ReceiptRow("Receipt Number:", receiptNumber)
@@ -351,11 +369,11 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFBB86FC)
+                    containerColor = PrimaryColor
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Continue to Chat", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text("Continue to Chat", color = Color.White, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -371,8 +389,8 @@ fun ReceiptRow(label: String, value: String) {
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, color = Color.Gray, fontSize = 14.sp)
-        Text(value, color = Color(0xFFBB86FC), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = TextSecondaryColor, fontSize = 14.sp)
+        Text(value, color = PrimaryColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -384,6 +402,7 @@ fun BookingPaymentScreenPreview() {
         override suspend fun insert(listing: com.example.studentnestfinder.db.entities.Listing): Long = 1
         override suspend fun insertAll(listings: List<com.example.studentnestfinder.db.entities.Listing>) {}
         override suspend fun update(listing: com.example.studentnestfinder.db.entities.Listing) {}
+        override suspend fun deleteById(listingId: Int, providerId: Int) {}
         override fun getAllAvailable(): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.Listing>> = kotlinx.coroutines.flow.flowOf(emptyList())
         override fun filter(minPrice: Float?, maxPrice: Float?, location: String?, type: String?): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.Listing>> = kotlinx.coroutines.flow.flowOf(emptyList())
         override fun getById(id: Int): kotlinx.coroutines.flow.Flow<com.example.studentnestfinder.db.entities.Listing?> = kotlinx.coroutines.flow.flowOf(null)
@@ -414,7 +433,11 @@ fun BookingPaymentScreenPreview() {
         listingId = 1,
         studentId = 1,
         onPaymentComplete = {},
-        onCancel = {}
+        onCancel = {},
+        onSettingsClick = {},
+        onHelpClick = {},
+        onFaqClick = {},
+        onLogout = {}
     )
 }
 
@@ -423,4 +446,3 @@ fun BookingPaymentScreenPreview() {
 fun ReceiptScreenPreview() {
     ReceiptScreen(receiptNumber = "RCP-20260408001", onClose = {})
 }
-
