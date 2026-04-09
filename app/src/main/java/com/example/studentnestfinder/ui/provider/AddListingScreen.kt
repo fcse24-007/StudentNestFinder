@@ -269,6 +269,7 @@ fun AddListingScreen(
                             Log.e("AddListingScreen", "Failed to save listing", error)
                             formError = "Failed to save listing. Please try again."
                         }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
