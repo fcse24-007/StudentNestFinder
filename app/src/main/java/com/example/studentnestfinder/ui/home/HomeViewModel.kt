@@ -20,6 +20,7 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
     private val searchQuery = MutableStateFlow("")
+    private val debouncedSearchQuery = searchQuery.debounce(300)
     private val selectedLocation = MutableStateFlow("All")
 
     init {
@@ -29,12 +30,13 @@ class HomeViewModel @Inject constructor(
     private fun loadListings() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val userId = UserSession.currentUserId
+            val userId = UserSession.currentUser.value?.id ?: -1
+            val preferenceFlow = if (userId > 0) preferenceDao.getForUser(userId) else flowOf(null)
             runCatching {
                 combine(
                     listingDao.getAllAvailable(),
-                    preferenceDao.getForUser(userId),
-                    searchQuery.debounce(300),
+                    preferenceFlow,
+                    debouncedSearchQuery,
                     selectedLocation
                 ) { listings, preference, query, location ->
                     applyFilters(listings, preference, query, location)

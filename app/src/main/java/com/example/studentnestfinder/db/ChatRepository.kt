@@ -108,8 +108,8 @@ class ChatRepository(
                                 isRead = doc.getBoolean("isRead") ?: false,
                                 timestamp = doc.getLong("timestamp") ?: 0L
                             )
-                        } catch (_: Exception) {
-                            Log.e("ChatRepository", "Failed to parse Firestore chat message ${doc.id}")
+                        } catch (e: Exception) {
+                            Log.e("ChatRepository", "Failed to parse Firestore chat message ${doc.id}", e)
                             null
                         }
                     }
