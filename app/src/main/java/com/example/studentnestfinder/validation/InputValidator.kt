@@ -1,7 +1,7 @@
 package com.example.studentnestfinder.validation
 
 object InputValidator {
-    private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+    private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$")
     private val studentIdRegex = Regex("^[A-Za-z0-9]{4,20}$")
 
     fun sanitizeText(input: String, maxLength: Int = 255): String =

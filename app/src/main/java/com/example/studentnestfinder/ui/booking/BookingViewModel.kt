@@ -21,6 +21,10 @@ class BookingViewModel @Inject constructor(
     private val listingDao: ListingDao,
     private val reservationDao: ReservationDao
 ) : ViewModel() {
+    companion object {
+        private const val MIN_VALID_ID = 1
+        private const val MIN_VALID_AMOUNT = 1
+    }
 
     private val _uiState = MutableStateFlow(BookingUiState())
     val uiState = _uiState.asStateFlow()
@@ -48,7 +52,7 @@ class BookingViewModel @Inject constructor(
     fun completePayment(listingId: Int, studentId: Int, amount: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            if (studentId <= 0 || amount <= 0) {
+            if (studentId < MIN_VALID_ID || amount < MIN_VALID_AMOUNT) {
                 _uiState.update { it.copy(isLoading = false, error = "Invalid booking information.") }
                 return@launch
             }

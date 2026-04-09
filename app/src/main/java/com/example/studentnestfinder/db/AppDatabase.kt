@@ -62,6 +62,8 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
                 })
+                // Intentional destructive migration: seeded/demo data is regenerated and
+                // password hashes are re-seeded with bcrypt for this app.
                 .fallbackToDestructiveMigration()
                 .build()
                 .also { INSTANCE = it }
