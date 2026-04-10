@@ -154,7 +154,7 @@ private fun StudentReservationCard(
             Text(reservation.listingTitle, color = NeutralColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Text("Landlord: ${reservation.providerName}", color = TextSecondaryColor, fontSize = 13.sp)
             Text("Location: ${reservation.location}", color = TextSecondaryColor, fontSize = 13.sp)
-            Text("Monthly rent: P${reservation.monthlyRent.toInt()}", color = TextSecondaryColor, fontSize = 13.sp)
+            Text("Monthly rent: P ${reservation.monthlyRent.toInt()}", color = TextSecondaryColor, fontSize = 13.sp)
             Text("Reservation ref: ${reservation.referenceNumber}", color = TextSecondaryColor, fontSize = 13.sp)
             Text(
                 "Reserved: ${
