@@ -103,14 +103,14 @@ suspend fun seedUsers(db: AppDatabase) {
         "Thuli Dineo", "Rudo Matshediso", "Bokang Motshwari"
     )
 
-    val maxSequencePerCourse = 900
-    val yearCodeRange = 30
+    val maxStudentSequenceNumber = 900
+    val yearCodeCycleSize = 30
 
     // Map names to User objects, cycling through the university list
     val users = names.mapIndexed { i, name ->
         val config = universities[i % universities.size]
-        val idx = ((i % maxSequencePerCourse) + 1).toString().padStart(3, '0')
-        val yearCode = ((i % yearCodeRange) + 1).toString().padStart(2, '0')
+        val idx = ((i % maxStudentSequenceNumber) + 1).toString().padStart(3, '0')
+        val yearCode = ((i % yearCodeCycleSize) + 1).toString().padStart(2, '0')
         val firstName = name.split(" ")[0].lowercase()
 
         User(
