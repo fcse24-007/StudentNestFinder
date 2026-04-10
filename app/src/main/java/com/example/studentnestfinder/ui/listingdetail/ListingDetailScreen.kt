@@ -67,6 +67,8 @@ fun ListingDetailScreen(
 
     val currentListing = listing!!
     val canChatLandlord = isProvider || hasActiveReservation.any { it.listingId == currentListing.id }
+    val hasAnyActiveReservation = hasActiveReservation.isNotEmpty()
+    val canReserve = !isProvider && currentListing.status == "AVAILABLE" && !hasAnyActiveReservation
 
     Scaffold(
         containerColor = SecondaryColor,
@@ -245,7 +247,7 @@ fun ListingDetailScreen(
                         }
                         Button(
                             onClick = { onReserveClick(currentListing.id) },
-                            enabled = currentListing.status == "AVAILABLE",
+                            enabled = canReserve,
                             modifier = Modifier
                                 .weight(1.5f)
                                 .height(48.dp),
@@ -255,7 +257,12 @@ fun ListingDetailScreen(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                if (currentListing.status == "AVAILABLE") "Reserve Now" else "Reserved",
+                                when {
+                                    isProvider -> "Students Only"
+                                    currentListing.status != "AVAILABLE" -> "Reserved"
+                                    !canReserve -> "One Active Reservation Allowed"
+                                    else -> "Reserve Now"
+                                },
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
                             )
