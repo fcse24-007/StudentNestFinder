@@ -21,7 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.studentnestfinder.db.dao.ListingDao
+import com.example.studentnestfinder.db.dao.ReservationDao
 import com.example.studentnestfinder.db.entities.Listing
+import com.example.studentnestfinder.db.entities.ProviderReservationDetails
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
 import com.example.studentnestfinder.ui.theme.ErrorColor
 import com.example.studentnestfinder.ui.theme.NeutralColor
@@ -30,12 +32,14 @@ import com.example.studentnestfinder.ui.theme.SecondaryColor
 import com.example.studentnestfinder.ui.theme.SuccessColor
 import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProviderDashboardScreen(
     providerId: Int,
     listingDao: ListingDao,
+    reservationDao: ReservationDao,
     onListingClick: (Int) -> Unit,
     onBack: () -> Unit,
     onAddListing: () -> Unit,
@@ -45,7 +49,30 @@ fun ProviderDashboardScreen(
     onLogout: () -> Unit
 ) {
     val listings by listingDao.getByProvider(providerId).collectAsState(initial = emptyList())
+    val reservations by reservationDao.getProviderReservationDetails(providerId).collectAsState(initial = emptyList())
+    var showReservationNotification by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(providerId) {
+        val pending = reservationDao.getPendingProviderNotifications(providerId).first()
+        if (pending.isNotEmpty()) {
+            pending.forEach { reservationDao.markProviderNotified(it.id) }
+            showReservationNotification = true
+        }
+    }
+
+    if (showReservationNotification) {
+        AlertDialog(
+            onDismissRequest = { showReservationNotification = false },
+            title = { Text("New Reservation") },
+            text = { Text("A student has reserved one of your properties.") },
+            confirmButton = {
+                TextButton(onClick = { showReservationNotification = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = SecondaryColor,
@@ -78,30 +105,42 @@ fun ProviderDashboardScreen(
             }
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Your Managed Listings", color = NeutralColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(16.dp))
-
+            item {
+                Text("Your Managed Listings", color = NeutralColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
             if (listings.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                item {
                     Text("No listings yet. Tap + to add.", color = TextSecondaryColor)
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    items(listings) { listing ->
-                        ProviderListingCard(
-                            listing = listing,
-                            onEditClick = { onListingClick(listing.id) },
-                            onDeleteClick = {
-                                scope.launch { listingDao.deleteById(listing.id, providerId) }
-                            }
-                        )
-                    }
+                items(listings) { listing ->
+                    ProviderListingCard(
+                        listing = listing,
+                        onEditClick = { onListingClick(listing.id) },
+                        onDeleteClick = {
+                            scope.launch { listingDao.deleteById(listing.id, providerId) }
+                        }
+                    )
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Recent Reservations", color = NeutralColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+            if (reservations.isEmpty()) {
+                item {
+                    Text("No reservations yet.", color = TextSecondaryColor)
+                }
+            } else {
+                items(reservations) { reservation ->
+                    ProviderReservationCard(reservation)
                 }
             }
         }
@@ -142,6 +181,23 @@ fun ProviderListingCard(
                     Icon(Icons.Default.Delete, contentDescription = "Delete listing", tint = ErrorColor)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ProviderReservationCard(reservation: ProviderReservationDetails) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(reservation.listingTitle, color = NeutralColor, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text("Student: ${reservation.studentName}", color = TextSecondaryColor, fontSize = 13.sp)
+            Text("Student ID: ${reservation.studentIdentifier}", color = TextSecondaryColor, fontSize = 13.sp)
+            Text("Reference: ${reservation.referenceNumber}", color = TextSecondaryColor, fontSize = 12.sp)
+            Text("Status: ${reservation.status}", color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
         }
     }
 }

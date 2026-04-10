@@ -29,7 +29,7 @@ data class UniversityConfig(
         UserPreference::class,
         ChatMessage::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -80,11 +80,11 @@ fun hashPassword(input: String): String = BCrypt.hashpw(input, BCrypt.gensalt())
 suspend fun seedUsers(db: AppDatabase) {
     // List of Gaborone Institutions
     val universities = listOf(
-        UniversityConfig("University of Botswana", "200", "student.ub.bw"),
-        UniversityConfig("Botho University", "BU", "bothocollege.ac.bw"),
-        UniversityConfig("Botswana Accountancy College", "BAC", "bac.ac.bw"),
-        UniversityConfig("ISBS", "ISB", "isbs.ac.bw"),
-        UniversityConfig("Boitekanelo College", "BC", "boitekanelo.ac.bw")
+        UniversityConfig("University of Botswana", "fcse", "student.ub.bw"),
+        UniversityConfig("Botho University", "cse", "bothocollege.ac.bw"),
+        UniversityConfig("Botswana Accountancy College", "bac", "bac.ac.bw"),
+        UniversityConfig("ISBS", "isb", "isbs.ac.bw"),
+        UniversityConfig("Boitekanelo College", "btc", "boitekanelo.ac.bw")
     )
 
     val names = listOf(
@@ -106,11 +106,12 @@ suspend fun seedUsers(db: AppDatabase) {
     // Map names to User objects, cycling through the university list
     val users = names.mapIndexed { i, name ->
         val config = universities[i % universities.size]
-        val idx = (i + 1).toString().padStart(3, '0')
+        val idx = ((i % 900) + 1).toString().padStart(3, '0')
+        val yearCode = ((i % 30) + 1).toString().padStart(2, '0')
         val firstName = name.split(" ")[0].lowercase()
 
         User(
-            studentId = "${config.idPrefix}${idx}",
+            studentId = "${config.idPrefix}${yearCode}-${idx}",
             name = name,
             email = "$firstName$idx@${config.emailDomain}",
             passwordHash = hashPassword("password$idx"),

@@ -51,7 +51,7 @@ class AuthViewModel @Inject constructor(
 
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val user = userDao.getByStudentId(state.studentId.trim())
+                val user = userDao.getByStudentId(normalizeStudentId(state.studentId, state.role))
                 if (user != null && passwordHasher.verify(state.password, user.passwordHash)) {
                     UserSession.login(user)
                     _uiState.update { it.copy(isLoading = false, authSuccess = true) }
@@ -84,7 +84,7 @@ class AuthViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val newUser = User(
-                    studentId = state.studentId.trim(),
+                    studentId = normalizeStudentId(state.studentId, state.role),
                     name = state.name.trim(),
                     email = state.email.trim(),
                     passwordHash = passwordHasher.hash(state.password),
@@ -107,5 +107,10 @@ class AuthViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false, error = "Registration failed. Please try again.") }
             }
         }
+    }
+
+    private fun normalizeStudentId(id: String, role: String): String {
+        val trimmed = id.trim()
+        return if (role == "PROVIDER") trimmed.uppercase() else trimmed.lowercase()
     }
 }

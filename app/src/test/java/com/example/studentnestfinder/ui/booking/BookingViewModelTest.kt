@@ -42,15 +42,42 @@ class BookingViewModelTest {
 
         assertEquals("This room has already been reserved.", viewModel.uiState.value.error)
     }
+
+    @Test
+    fun completePayment_studentAlreadyHasReservation_setsError() = runTest {
+        val viewModel = BookingViewModel(
+            FakeListingDao(),
+            FakeReservationDao(activeCount = 0, studentActiveCount = 1)
+        )
+
+        viewModel.completePayment(listingId = 1, studentId = 10, amount = 1200)
+        advanceUntilIdle()
+
+        assertEquals("You already have an active reservation.", viewModel.uiState.value.error)
+    }
 }
 
-private class FakeReservationDao(private val activeCount: Int) : ReservationDao {
+private class FakeReservationDao(
+    private val activeCount: Int,
+    private val studentActiveCount: Int = 0
+) : ReservationDao {
     override suspend fun insert(reservation: Reservation): Long = 1
     override suspend fun update(reservation: Reservation) {}
     override fun getForStudent(studentId: Int): Flow<List<Reservation>> = flowOf(emptyList())
+    override fun getActiveForStudent(studentId: Int): Flow<List<Reservation>> = flowOf(emptyList())
     override fun getForProvider(providerId: Int): Flow<List<Reservation>> = flowOf(emptyList())
     override suspend fun getByReference(ref: String): Reservation? = null
     override suspend fun countActiveForListing(listingId: Int): Int = activeCount
+    override suspend fun countActiveForStudent(studentId: Int): Int = studentActiveCount
+    override suspend fun countActiveForStudentAndListing(studentId: Int, listingId: Int): Int = 0
+    override fun getStudentReservationDetails(studentId: Int): Flow<List<com.example.studentnestfinder.db.entities.StudentReservationDetails>> =
+        flowOf(emptyList())
+    override fun getProviderReservationDetails(providerId: Int): Flow<List<com.example.studentnestfinder.db.entities.ProviderReservationDetails>> =
+        flowOf(emptyList())
+    override fun getPendingStudentNotifications(studentId: Int): Flow<List<Reservation>> = flowOf(emptyList())
+    override fun getPendingProviderNotifications(providerId: Int): Flow<List<Reservation>> = flowOf(emptyList())
+    override suspend fun markStudentNotified(reservationId: Int) {}
+    override suspend fun markProviderNotified(reservationId: Int) {}
 }
 
 private class FakeListingDao : ListingDao {

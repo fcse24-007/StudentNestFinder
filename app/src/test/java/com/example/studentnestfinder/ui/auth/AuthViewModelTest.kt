@@ -43,7 +43,7 @@ class AuthViewModelTest {
     @Test
     fun register_success_createsUserAndAuthenticates() = runTest {
         viewModel.toggleMode()
-        viewModel.updateStudentId("200001")
+        viewModel.updateStudentId("fcse24-001")
         viewModel.updateName("Test User")
         viewModel.updateEmail("test@example.com")
         viewModel.updatePassword("password123")
@@ -62,13 +62,13 @@ class AuthViewModelTest {
     fun login_invalidPassword_setsError() = runTest {
         userDao.insert(
             User(
-                studentId = "200001",
+                studentId = "fcse24-001",
                 name = "Existing User",
                 email = "existing@example.com",
                 passwordHash = "hashed:password123"
             )
         )
-        viewModel.updateStudentId("200001")
+        viewModel.updateStudentId("fcse24-001")
         viewModel.updatePassword("wrongpass")
 
         viewModel.login()

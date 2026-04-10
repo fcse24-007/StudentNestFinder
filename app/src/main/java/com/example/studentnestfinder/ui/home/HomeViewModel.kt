@@ -34,11 +34,17 @@ class HomeViewModel @Inject constructor(
     private fun loadListings() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val userId = UserSession.currentUser.value?.id ?: INVALID_USER_ID
+            val currentUser = UserSession.currentUser.value
+            val userId = currentUser?.id ?: INVALID_USER_ID
             val preferenceFlow = if (userId > 0) preferenceDao.getForUser(userId) else flowOf(null)
+            val listingFlow = if (currentUser?.role == "PROVIDER" && userId > 0) {
+                listingDao.getByProvider(userId)
+            } else {
+                listingDao.getAllAvailable()
+            }
             runCatching {
                 combine(
-                    listingDao.getAllAvailable(),
+                    listingFlow,
                     preferenceFlow,
                     debouncedSearchQuery,
                     selectedLocation
