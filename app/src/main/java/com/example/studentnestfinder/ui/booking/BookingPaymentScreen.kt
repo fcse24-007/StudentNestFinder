@@ -438,9 +438,20 @@ fun BookingPaymentScreenPreview() {
         override suspend fun insert(reservation: com.example.studentnestfinder.db.entities.Reservation): Long = 1
         override suspend fun update(reservation: com.example.studentnestfinder.db.entities.Reservation) {}
         override fun getForStudent(studentId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.Reservation>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getActiveForStudent(studentId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.Reservation>> = kotlinx.coroutines.flow.flowOf(emptyList())
         override fun getForProvider(providerId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.Reservation>> = kotlinx.coroutines.flow.flowOf(emptyList())
         override suspend fun getByReference(ref: String): com.example.studentnestfinder.db.entities.Reservation? = null
         override suspend fun countActiveForListing(listingId: Int): Int = 0
+        override suspend fun countActiveForStudent(studentId: Int): Int = 0
+        override suspend fun countActiveForStudentAndListing(studentId: Int, listingId: Int): Int = 0
+        override fun getStudentReservationDetails(studentId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.StudentReservationDetails>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getProviderReservationDetails(providerId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.ProviderReservationDetails>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getPendingStudentNotifications(studentId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.Reservation>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getPendingProviderNotifications(providerId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.Reservation>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override suspend fun markStudentNotified(reservationId: Int) {}
+        override suspend fun markProviderNotified(reservationId: Int) {}
+        override suspend fun markStudentNotifiedBatch(reservationIds: List<Int>) {}
+        override suspend fun markProviderNotifiedBatch(reservationIds: List<Int>) {}
     }
     
     val viewModel = BookingViewModel(mockListingDao, mockResDao)

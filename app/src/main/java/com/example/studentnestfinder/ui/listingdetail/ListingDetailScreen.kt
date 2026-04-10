@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.example.studentnestfinder.db.dao.ListingDao
+import com.example.studentnestfinder.db.dao.ReservationDao
 import com.example.studentnestfinder.db.dao.UserDao
 import com.example.studentnestfinder.db.entities.Listing
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
@@ -33,7 +34,10 @@ import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 @Composable
 fun ListingDetailScreen(
     listingId: Int,
+    currentUserId: Int,
+    isProvider: Boolean,
     listingDao: ListingDao,
+    reservationDao: ReservationDao,
     userDao: UserDao,
     onReserveClick: (Int) -> Unit,
     onChatClick: (providerId: Int, providerName: String) -> Unit,
@@ -44,6 +48,7 @@ fun ListingDetailScreen(
     onLogout: () -> Unit
 ) {
     val listing by listingDao.getById(listingId).collectAsState(initial = null)
+    val hasActiveReservation by reservationDao.getActiveForStudent(currentUserId).collectAsState(initial = emptyList())
     var providerName by remember { mutableStateOf("Provider") }
 
     LaunchedEffect(listing) {
@@ -61,6 +66,9 @@ fun ListingDetailScreen(
     }
 
     val currentListing = listing!!
+    val canChatWithLandlord = isProvider || hasActiveReservation.any { it.listingId == currentListing.id }
+    val hasAnyActiveReservation = hasActiveReservation.isNotEmpty()
+    val canReserve = !isProvider && currentListing.status == "AVAILABLE" && !hasAnyActiveReservation
 
     Scaffold(
         containerColor = SecondaryColor,
@@ -220,6 +228,7 @@ fun ListingDetailScreen(
                     ) {
                         Button(
                             onClick = { onChatClick(currentListing.providerId, providerName) },
+                            enabled = canChatWithLandlord,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp),
@@ -237,10 +246,9 @@ fun ListingDetailScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Chat", color = NeutralColor)
                         }
-
                         Button(
                             onClick = { onReserveClick(currentListing.id) },
-                            enabled = currentListing.status == "AVAILABLE",
+                            enabled = canReserve,
                             modifier = Modifier
                                 .weight(1.5f)
                                 .height(48.dp),
@@ -250,11 +258,24 @@ fun ListingDetailScreen(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                if (currentListing.status == "AVAILABLE") "Reserve Now" else "Reserved",
+                                when {
+                                    isProvider -> "Students Only"
+                                    currentListing.status != "AVAILABLE" -> "Reserved"
+                                    !canReserve -> "Limit Reached"
+                                    else -> "Reserve Now"
+                                },
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
                             )
                         }
+                    }
+                    if (!canChatWithLandlord) {
+                        Text(
+                            "Reserve this property first to chat with the landlord.",
+                            color = TextSecondaryColor,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
                     }
                 }
             }

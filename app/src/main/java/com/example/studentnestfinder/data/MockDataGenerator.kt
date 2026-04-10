@@ -35,7 +35,7 @@ object MockDataGenerator {
                 id = index,
                 name = "$firstName $lastName",
                 email = "${firstName.lowercase()}.${lastName.lowercase()}@example.com",
-                studentId = "STU${String.format(Locale.US, "%05d", index)}",
+                studentId = "fcse${String.format(Locale.US, "%02d", (index % 30) + 1)}-${String.format(Locale.US, "%03d", ((index - 1) % 900) + 1)}",
                 passwordHash = "hashed_password_123", // In real app, this would be hashed
                 university = university,
                 role = "STUDENT",
@@ -50,7 +50,7 @@ object MockDataGenerator {
                 id = 51,
                 name = "Mpho Ndlovu",
                 email = "mpho.ndlovu@example.com",
-                studentId = "PRV00001",
+                studentId = "PRV001",
                 passwordHash = "hashed_password_123",
                 university = "Gaborone",
                 role = "PROVIDER",
@@ -60,7 +60,7 @@ object MockDataGenerator {
                 id = 52,
                 name = "Boitumelo Khubone",
                 email = "boitumelo.khubone@example.com",
-                studentId = "PRV00002",
+                studentId = "PRV002",
                 passwordHash = "hashed_password_123",
                 university = "Gaborone",
                 role = "PROVIDER",
@@ -158,4 +158,3 @@ object MockDataGenerator {
         }
     }
 }
-

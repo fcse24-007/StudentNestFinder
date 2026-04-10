@@ -74,6 +74,10 @@ class BookingViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = false, error = "This room has already been reserved.") }
                     return@launch
                 }
+                if (reservationDao.countActiveForStudent(studentId) > 0) {
+                    _uiState.update { it.copy(isLoading = false, error = "You already have an active reservation.") }
+                    return@launch
+                }
 
                 reservationDao.insert(reservation)
                 listingDao.updateStatus(listingId, "RESERVED")

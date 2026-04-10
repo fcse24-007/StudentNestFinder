@@ -4,13 +4,16 @@ import java.util.Calendar
 
 object InputValidator {
     private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$")
-    private val studentIdRegex = Regex("^[A-Za-z0-9]{4,20}$")
+    private val studentIdRegex = Regex("^[A-Za-z]{2,6}\\d{2}-\\d{3}$")
+    private val providerIdRegex = Regex("^PRV\\d{3}$")
 
     fun sanitizeText(input: String, maxLength: Int = 255): String =
         input.trim().take(maxLength)
 
     fun validateLogin(studentId: String, password: String): String? {
-        if (!studentIdRegex.matches(studentId.trim())) return "Enter a valid ID (4-20 letters/numbers)."
+        val normalizedId = studentId.trim()
+        val isValid = studentIdRegex.matches(normalizedId) || providerIdRegex.matches(normalizedId.uppercase())
+        if (!isValid) return "Enter a valid ID (e.g., fcse24-001 or PRV001)."
         if (password.length < 8) return "Password must be at least 8 characters."
         return null
     }

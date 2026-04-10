@@ -36,5 +36,7 @@ data class Reservation(
     val moveInDate: Long,                // Timestamp
     val moveOutDate: Long,               // Timestamp
     val amountPaid: Int,                 // Total amount in BWP
-    val reservedAt: Long = System.currentTimeMillis()
+    val reservedAt: Long = System.currentTimeMillis(),
+    val studentNotified: Boolean = false,
+    val providerNotified: Boolean = false
 )

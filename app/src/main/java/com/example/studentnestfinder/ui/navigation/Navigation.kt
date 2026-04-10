@@ -6,11 +6,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,12 +30,14 @@ import com.example.studentnestfinder.db.ChatRepository
 import com.example.studentnestfinder.ui.auth.AuthScreen
 import com.example.studentnestfinder.ui.auth.AuthViewModel
 import com.example.studentnestfinder.ui.booking.BookingPaymentScreen
+import com.example.studentnestfinder.ui.booking.StudentReservationsScreen
 import com.example.studentnestfinder.ui.chat.ChatScreen
 import com.example.studentnestfinder.ui.home.HomeScreen
 import com.example.studentnestfinder.ui.home.HomeViewModel
 import com.example.studentnestfinder.ui.info.FaqScreen
 import com.example.studentnestfinder.ui.info.HelpScreen
 import com.example.studentnestfinder.ui.listingdetail.ListingDetailScreen
+import com.example.studentnestfinder.ui.theme.PrimaryColor
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
@@ -40,6 +49,7 @@ sealed class Screen(val route: String) {
     object Booking : Screen("booking/{listingId}") {
         fun createRoute(listingId: Int) = "booking/$listingId"
     }
+    object StudentReservations : Screen("student_reservations")
     object ChatList : Screen("chat_list")
     object Chat : Screen("chat/{conversationId}/{recipientName}") {
         fun createRoute(conversationId: String, recipientName: String) = "chat/$conversationId/$recipientName"
@@ -68,12 +78,26 @@ fun AppNavigation(
 
     val listingDao = database.listingDao()
     val userDao = database.userDao()
+    val reservationDao = database.reservationDao()
     val chatRepository = ChatRepository(database.chatMessageDao())
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
+                Surface(
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.medium),
+                    color = PrimaryColor
+                ) {
+                    Text(
+                        text = "SNF",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                    )
+                }
                 NavigationDrawerItem(
                     label = { Text("Home") },
                     selected = false,
@@ -90,6 +114,16 @@ fun AppNavigation(
                         navController.navigate(Screen.ChatList.route)
                     }
                 )
+                if (currentUser?.role == "STUDENT") {
+                    NavigationDrawerItem(
+                        label = { Text("My Reservations") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            navController.navigate(Screen.StudentReservations.route)
+                        }
+                    )
+                }
                 NavigationDrawerItem(
                     label = { Text("Settings") },
                     selected = false,
@@ -192,7 +226,10 @@ fun AppNavigation(
             val listingId = backStackEntry.arguments?.getInt("listingId") ?: return@composable
             ListingDetailScreen(
                 listingId = listingId,
+                currentUserId = currentUser?.id ?: -1,
+                isProvider = currentUser?.role == "PROVIDER",
                 listingDao = listingDao,
+                reservationDao = reservationDao,
                 userDao = userDao,
                 onReserveClick = { id ->
                     navController.navigate(Screen.Booking.createRoute(id))
@@ -239,6 +276,35 @@ fun AppNavigation(
                     }
                 },
                 onCancel = {
+                    navController.popBackStack()
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Preferences.route)
+                },
+                onHelpClick = {
+                    navController.navigate(Screen.Help.route)
+                },
+                onFaqClick = {
+                    navController.navigate(Screen.Faq.route)
+                },
+                onLogout = {
+                    UserSession.logout()
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.StudentReservations.route) {
+            StudentReservationsScreen(
+                studentId = currentUser?.id ?: -1,
+                reservationDao = reservationDao,
+                onOpenChat = { providerId, providerName, listingId ->
+                    val convId = chatRepository.conversationId(currentUser?.id ?: -1, providerId, listingId)
+                    navController.navigate(Screen.Chat.createRoute(convId, providerName))
+                },
+                onBack = {
                     navController.popBackStack()
                 },
                 onSettingsClick = {
@@ -343,6 +409,7 @@ fun AppNavigation(
             com.example.studentnestfinder.ui.provider.ProviderDashboardScreen(
                 providerId = currentUser?.id ?: -1,
                 listingDao = listingDao,
+                reservationDao = reservationDao,
                 onListingClick = { listingId ->
                     navController.navigate(Screen.EditListing.createRoute(listingId))
                 },
