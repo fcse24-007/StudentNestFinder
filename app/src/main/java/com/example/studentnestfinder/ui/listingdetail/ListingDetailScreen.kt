@@ -222,7 +222,8 @@ fun ListingDetailScreen(
 
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Button(
@@ -273,10 +274,8 @@ fun ListingDetailScreen(
                             "Reserve this property first to chat with the landlord.",
                             color = TextSecondaryColor,
                             fontSize = 11.sp,
-                            modifier = Modifier.padding(top = 6.dp, bottom = 24.dp)
+                            modifier = Modifier.padding(top = 6.dp)
                         )
-                    } else {
-                        Spacer(modifier = Modifier.height(24.dp))
                     }
                 }
             }
