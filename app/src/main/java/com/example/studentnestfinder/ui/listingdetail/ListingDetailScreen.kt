@@ -261,7 +261,7 @@ fun ListingDetailScreen(
                                 when {
                                     isProvider -> "Students Only"
                                     currentListing.status != "AVAILABLE" -> "Reserved"
-                                    !canReserve -> "Active Reservation Limit Reached"
+                                    !canReserve -> "One Active Reservation Per Student"
                                     else -> "Reserve Now"
                                 },
                                 color = Color.White,
