@@ -37,6 +37,7 @@ import com.example.studentnestfinder.ui.home.HomeViewModel
 import com.example.studentnestfinder.ui.info.FaqScreen
 import com.example.studentnestfinder.ui.info.HelpScreen
 import com.example.studentnestfinder.ui.listingdetail.ListingDetailScreen
+import com.example.studentnestfinder.ui.theme.PrimaryColor
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
@@ -87,7 +88,7 @@ fun AppNavigation(
                 Surface(
                     modifier = Modifier
                         .clip(MaterialTheme.shapes.medium),
-                    color = Color(0xFF2D6A4F)
+                    color = PrimaryColor
                 ) {
                     Text(
                         text = "SNF",

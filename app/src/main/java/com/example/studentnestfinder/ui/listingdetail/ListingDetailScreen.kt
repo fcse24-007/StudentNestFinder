@@ -66,7 +66,7 @@ fun ListingDetailScreen(
     }
 
     val currentListing = listing!!
-    val canChatLandlord = isProvider || hasActiveReservation.any { it.listingId == currentListing.id }
+    val canChatWithLandlord = isProvider || hasActiveReservation.any { it.listingId == currentListing.id }
     val hasAnyActiveReservation = hasActiveReservation.isNotEmpty()
     val canReserve = !isProvider && currentListing.status == "AVAILABLE" && !hasAnyActiveReservation
 
@@ -228,7 +228,7 @@ fun ListingDetailScreen(
                     ) {
                         Button(
                             onClick = { onChatClick(currentListing.providerId, providerName) },
-                            enabled = canChatLandlord,
+                            enabled = canChatWithLandlord,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp),
@@ -269,7 +269,7 @@ fun ListingDetailScreen(
                             )
                         }
                     }
-                    if (!canChatLandlord) {
+                    if (!canChatWithLandlord) {
                         Text(
                             "Reserve this property first to chat with the landlord.",
                             color = TextSecondaryColor,
