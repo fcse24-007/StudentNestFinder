@@ -13,7 +13,7 @@ object InputValidator {
     fun validateLogin(studentId: String, password: String): String? {
         val normalizedId = studentId.trim()
         val isValid = studentIdRegex.matches(normalizedId) || providerIdRegex.matches(normalizedId.uppercase())
-        if (!isValid) return "Enter a valid ID (e.g., FCSE24-001 or PRV001)."
+        if (!isValid) return "Enter a valid ID (e.g., fcse24-001 or PRV001)."
         if (password.length < 8) return "Password must be at least 8 characters."
         return null
     }
