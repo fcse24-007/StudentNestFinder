@@ -56,7 +56,7 @@ fun ProviderDashboardScreen(
     LaunchedEffect(providerId) {
         val pending = reservationDao.getPendingProviderNotifications(providerId).first()
         if (pending.isNotEmpty()) {
-            pending.forEach { reservationDao.markProviderNotified(it.id) }
+            reservationDao.markProviderNotifiedBatch(pending.map { it.id })
             showReservationNotification = true
         }
     }

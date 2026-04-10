@@ -102,4 +102,10 @@ interface ReservationDao {
 
     @Query("UPDATE reservations SET providerNotified = 1 WHERE id = :reservationId")
     suspend fun markProviderNotified(reservationId: Int)
+
+    @Query("UPDATE reservations SET studentNotified = 1 WHERE id IN (:reservationIds)")
+    suspend fun markStudentNotifiedBatch(reservationIds: List<Int>)
+
+    @Query("UPDATE reservations SET providerNotified = 1 WHERE id IN (:reservationIds)")
+    suspend fun markProviderNotifiedBatch(reservationIds: List<Int>)
 }

@@ -78,6 +78,8 @@ private class FakeReservationDao(
     override fun getPendingProviderNotifications(providerId: Int): Flow<List<Reservation>> = flowOf(emptyList())
     override suspend fun markStudentNotified(reservationId: Int) {}
     override suspend fun markProviderNotified(reservationId: Int) {}
+    override suspend fun markStudentNotifiedBatch(reservationIds: List<Int>) {}
+    override suspend fun markProviderNotifiedBatch(reservationIds: List<Int>) {}
 }
 
 private class FakeListingDao : ListingDao {

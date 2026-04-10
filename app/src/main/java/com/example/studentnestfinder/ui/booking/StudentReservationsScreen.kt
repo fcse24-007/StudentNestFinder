@@ -69,7 +69,7 @@ fun StudentReservationsScreen(
     LaunchedEffect(studentId) {
         val pending = reservationDao.getPendingStudentNotifications(studentId).first()
         if (pending.isNotEmpty()) {
-            pending.forEach { reservationDao.markStudentNotified(it.id) }
+            reservationDao.markStudentNotifiedBatch(pending.map { it.id })
             showConfirmationNotification = true
         }
     }

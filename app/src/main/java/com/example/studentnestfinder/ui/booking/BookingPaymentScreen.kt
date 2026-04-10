@@ -450,6 +450,8 @@ fun BookingPaymentScreenPreview() {
         override fun getPendingProviderNotifications(providerId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.Reservation>> = kotlinx.coroutines.flow.flowOf(emptyList())
         override suspend fun markStudentNotified(reservationId: Int) {}
         override suspend fun markProviderNotified(reservationId: Int) {}
+        override suspend fun markStudentNotifiedBatch(reservationIds: List<Int>) {}
+        override suspend fun markProviderNotifiedBatch(reservationIds: List<Int>) {}
     }
     
     val viewModel = BookingViewModel(mockListingDao, mockResDao)
