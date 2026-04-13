@@ -77,6 +77,7 @@ fun AppNavigation(
     val startDestination = if (isLoggedIn) Screen.Home.route else Screen.Auth.route
 
     val listingDao = database.listingDao()
+    val listingImageDao = database.listingImageDao()
     val userDao = database.userDao()
     val reservationDao = database.reservationDao()
     val chatRepository = ChatRepository(database.chatMessageDao())
@@ -184,16 +185,27 @@ fun AppNavigation(
                     val target = if (role == "PROVIDER") Screen.ProviderDashboard.route else Screen.Home.route
                     navController.navigate(target) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )
         }
 
         composable(Screen.Home.route) {
+            if (currentUser == null) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+                return@composable
+            }
             val homeViewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
                 isProvider = currentUser?.role == "PROVIDER",
                 viewModel = homeViewModel,
+                listingImageDao = listingImageDao,
                 onListingClick = { listingId ->
                     navController.navigate(Screen.ListingDetail.createRoute(listingId))
                 },
@@ -229,6 +241,7 @@ fun AppNavigation(
                 currentUserId = currentUser?.id ?: -1,
                 isProvider = currentUser?.role == "PROVIDER",
                 listingDao = listingDao,
+                listingImageDao = listingImageDao,
                 reservationDao = reservationDao,
                 userDao = userDao,
                 onReserveClick = { id ->
@@ -431,6 +444,7 @@ fun AppNavigation(
             com.example.studentnestfinder.ui.provider.AddListingScreen(
                 providerId = currentUser?.id ?: -1,
                 listingDao = listingDao,
+                listingImageDao = listingImageDao,
                 onBack = { navController.popBackStack() },
                 onSuccess = { navController.popBackStack() },
                 onSettingsClick = { navController.navigate(Screen.Preferences.route) },
@@ -453,6 +467,7 @@ fun AppNavigation(
             com.example.studentnestfinder.ui.provider.AddListingScreen(
                 providerId = currentUser?.id ?: -1,
                 listingDao = listingDao,
+                listingImageDao = listingImageDao,
                 listingId = listingId,
                 onBack = { navController.popBackStack() },
                 onSuccess = { navController.popBackStack() },

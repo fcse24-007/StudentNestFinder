@@ -12,10 +12,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.AsyncImage
+import com.example.studentnestfinder.db.dao.ListingImageDao
 import com.example.studentnestfinder.db.entities.Listing
+import com.example.studentnestfinder.ui.common.resolveListingImageModel
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
 import com.example.studentnestfinder.ui.theme.BorderLightColor
 import com.example.studentnestfinder.ui.theme.NeutralColor
@@ -29,6 +33,7 @@ import com.example.studentnestfinder.ui.theme.TextSecondaryColor
 fun HomeScreen(
     isProvider: Boolean,
     viewModel: HomeViewModel,
+    listingImageDao: ListingImageDao,
     onListingClick: (Int) -> Unit,
     onProfileClick: () -> Unit,
     onProviderDashboardClick: () -> Unit,
@@ -78,7 +83,11 @@ fun HomeScreen(
             }
 
             items(state.listings) { listing ->
-                ListingCard(listing, onClick = { onListingClick(listing.id) })
+                ListingCard(
+                    listing = listing,
+                    listingImageDao = listingImageDao,
+                    onClick = { onListingClick(listing.id) }
+                )
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
@@ -86,7 +95,9 @@ fun HomeScreen(
 }
 
 @Composable
-fun ListingCard(listing: Listing, onClick: () -> Unit) {
+fun ListingCard(listing: Listing, listingImageDao: ListingImageDao, onClick: () -> Unit) {
+    val context = LocalContext.current
+    val listingImages by listingImageDao.getForListing(listing.id).collectAsState(initial = emptyList())
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,7 +112,11 @@ fun ListingCard(listing: Listing, onClick: () -> Unit) {
                     .height(180.dp)
                     .background(BorderLightColor)
             ) {
-                Text("Property Image", color = TextSecondaryColor, modifier = Modifier.align(Alignment.Center))
+                AsyncImage(
+                    model = resolveListingImageModel(context, listingImages.firstOrNull()?.imagePath),
+                    contentDescription = "Property image",
+                    modifier = Modifier.fillMaxSize()
+                )
 
                 Surface(
                     modifier = Modifier
@@ -222,6 +237,7 @@ fun HomeTopBar(
                 Icon(Icons.Default.Settings, contentDescription = "Settings", tint = NeutralColor)
             }
             AppOverflowMenu(
+                showSettings = false,
                 onSettingsClick = onProfileClick,
                 onHelpClick = onHelpClick,
                 onFaqClick = onFaqClick,
@@ -250,7 +266,7 @@ fun ListingCardPreview() {
         status = "AVAILABLE",
         distanceToCampusKm = 0.5f
     )
-    ListingCard(listing = sampleListing, onClick = {})
+    ListingCard(listing = sampleListing, listingImageDao = MockListingImageDao(), onClick = {})
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
@@ -270,7 +286,7 @@ fun ListingCardPreviewHighPrice() {
         status = "AVAILABLE",
         distanceToCampusKm = 2.3f
     )
-    ListingCard(listing = sampleListing, onClick = {})
+    ListingCard(listing = sampleListing, listingImageDao = MockListingImageDao(), onClick = {})
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
@@ -417,4 +433,13 @@ class MockListingDao : com.example.studentnestfinder.db.dao.ListingDao {
         )
     override fun getByProvider(providerId: Int): kotlinx.coroutines.flow.Flow<List<Listing>> =
         kotlinx.coroutines.flow.flowOf(emptyList())
+}
+
+class MockListingImageDao : com.example.studentnestfinder.db.dao.ListingImageDao {
+    override suspend fun insertAll(images: List<com.example.studentnestfinder.db.entities.ListingImage>) {}
+    override suspend fun deleteForListing(listingId: Int) {}
+    override suspend fun replaceCoverImage(listingId: Int, imagePath: String) {}
+    override fun getForListing(listingId: Int): kotlinx.coroutines.flow.Flow<List<com.example.studentnestfinder.db.entities.ListingImage>> =
+        kotlinx.coroutines.flow.flowOf(emptyList())
+    override suspend fun getCoverImage(listingId: Int): com.example.studentnestfinder.db.entities.ListingImage? = null
 }

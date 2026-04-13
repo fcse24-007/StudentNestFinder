@@ -1,7 +1,12 @@
 package com.example.studentnestfinder.ui.provider
 
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,20 +14,26 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.studentnestfinder.db.dao.ListingDao
+import com.example.studentnestfinder.db.dao.ListingImageDao
 import com.example.studentnestfinder.db.entities.Listing
+import com.example.studentnestfinder.ui.common.normalizeAmenitiesInput
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
+import com.example.studentnestfinder.ui.common.resolveListingImageModel
 import com.example.studentnestfinder.ui.theme.BorderLightColor
 import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
@@ -35,6 +46,7 @@ import com.example.studentnestfinder.validation.InputValidator
 fun AddListingScreen(
     providerId: Int,
     listingDao: ListingDao,
+    listingImageDao: ListingImageDao,
     listingId: Int? = null,
     onBack: () -> Unit,
     onSuccess: () -> Unit,
@@ -48,6 +60,10 @@ fun AddListingScreen(
         if (listingId == null) kotlinx.coroutines.flow.flowOf(null)
         else listingDao.getById(listingId)
     }.collectAsState(initial = null)
+    val existingImages by remember(listingId) {
+        if (listingId == null) kotlinx.coroutines.flow.flowOf(emptyList())
+        else listingImageDao.getForListing(listingId)
+    }.collectAsState(initial = emptyList())
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
@@ -58,6 +74,21 @@ fun AddListingScreen(
     var distance by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("AVAILABLE") }
     var formError by remember { mutableStateOf<String?>(null) }
+    var selectedImageUri by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
+            selectedImageUri = uri.toString()
+        }
+    }
 
     val types = listOf("EN_SUITE", "SHARED", "STUDIO", "FLAT")
 
@@ -72,6 +103,11 @@ fun AddListingScreen(
             deposit = it.depositAmount.toString()
             distance = it.distanceToCampusKm.toString()
             status = it.status
+        }
+    }
+    LaunchedEffect(existingImages) {
+        if (selectedImageUri == null) {
+            selectedImageUri = existingImages.firstOrNull()?.imagePath
         }
     }
 
@@ -119,12 +155,13 @@ fun AddListingScreen(
                 )
             )
 
-                OutlinedTextField(
+            OutlinedTextField(
                     value = description,
                     onValueChange = { description = InputValidator.sanitizeText(it, 1000) },
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
+                maxLines = 8,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryColor,
                     unfocusedBorderColor = BorderLightColor,
@@ -132,6 +169,49 @@ fun AddListingScreen(
                     focusedTextColor = NeutralColor
                 )
             )
+
+            Text("Property Image", color = PrimaryColor, fontWeight = FontWeight.Bold)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .border(1.dp, BorderLightColor, RoundedCornerShape(12.dp)),
+                shape = RoundedCornerShape(12.dp),
+                color = Color.White
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    if (!selectedImageUri.isNullOrBlank()) {
+                        AsyncImage(
+                            model = resolveListingImageModel(context, selectedImageUri),
+                            contentDescription = "Selected property image",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Home,
+                                contentDescription = null,
+                                tint = TextSecondaryColor,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Text("No image selected", color = TextSecondaryColor)
+                        }
+                    }
+                }
+            }
+            OutlinedButton(
+                onClick = { imagePickerLauncher.launch(arrayOf("image/*")) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryColor)
+            ) {
+                Text(
+                    if (selectedImageUri.isNullOrBlank() && existingImages.isEmpty()) {
+                        "Upload Property Image"
+                    } else {
+                        "Change Property Image"
+                    }
+                )
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
@@ -242,6 +322,10 @@ fun AddListingScreen(
                         formError = validationError
                         return@Button
                     }
+                    if (selectedImageUri.isNullOrBlank() && existingImages.isEmpty()) {
+                        formError = "Please upload a property image."
+                        return@Button
+                    }
                     formError = null
                     scope.launch {
                         runCatching {
@@ -253,16 +337,20 @@ fun AddListingScreen(
                                 price = price.toFloatOrNull() ?: 0f,
                                 location = location.trim(),
                                 type = type,
-                                amenities = amenities.trim(),
+                                amenities = normalizeAmenitiesInput(amenities).joinToString(", "),
                                 depositAmount = deposit.toIntOrNull() ?: 0,
                                 availabilityDate = existingListing?.availabilityDate ?: "2026-05-01",
                                 status = status,
                                 distanceToCampusKm = distance.toFloatOrNull() ?: 0f
                             )
-                            if (listingId == null) {
-                                listingDao.insert(listing)
+                            val savedListingId = if (listingId == null) {
+                                listingDao.insert(listing).toInt()
                             } else {
                                 listingDao.update(listing)
+                                listingId
+                            }
+                            if (!selectedImageUri.isNullOrBlank()) {
+                                listingImageDao.replaceCoverImage(savedListingId, selectedImageUri!!)
                             }
                             onSuccess()
                         }.onFailure { error ->
@@ -282,6 +370,3 @@ fun AddListingScreen(
         }
     }
 }
-
-// Re-using simplified clickable surface logic if needed, but since I'm in the same package I can just use clickable.
-// Wait, I need to make sure clickable is imported.
