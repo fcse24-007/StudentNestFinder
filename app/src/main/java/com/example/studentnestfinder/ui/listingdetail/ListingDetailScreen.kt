@@ -19,19 +19,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.example.studentnestfinder.R
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
 import com.example.studentnestfinder.db.dao.ListingDao
+import com.example.studentnestfinder.db.dao.ListingImageDao
 import com.example.studentnestfinder.db.dao.ReservationDao
 import com.example.studentnestfinder.db.dao.UserDao
 import com.example.studentnestfinder.db.entities.Listing
+import com.example.studentnestfinder.ui.common.parseStoredAmenities
+import com.example.studentnestfinder.ui.common.resolveListingImageModel
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
 import com.example.studentnestfinder.ui.theme.BorderLightColor
 import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
 import com.example.studentnestfinder.ui.theme.SecondaryColor
 import com.example.studentnestfinder.ui.theme.TextSecondaryColor
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +42,7 @@ fun ListingDetailScreen(
     currentUserId: Int,
     isProvider: Boolean,
     listingDao: ListingDao,
+    listingImageDao: ListingImageDao,
     reservationDao: ReservationDao,
     userDao: UserDao,
     onReserveClick: (Int) -> Unit,
@@ -51,6 +54,8 @@ fun ListingDetailScreen(
     onLogout: () -> Unit
 ) {
     val listing by listingDao.getById(listingId).collectAsState(initial = null)
+    val listingImages by listingImageDao.getForListing(listingId).collectAsState(initial = emptyList())
+    val context = LocalContext.current
     val hasActiveReservation by reservationDao.getActiveForStudent(currentUserId).collectAsState(initial = emptyList())
     var providerName by remember { mutableStateOf("Provider") }
 
@@ -110,12 +115,10 @@ fun ListingDetailScreen(
                         .height(250.dp)
                         .background(BorderLightColor)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_property_placeholder),
-                        contentDescription = "Property image placeholder",
-                        modifier = Modifier
-                            .size(100.dp)
-                            .align(Alignment.Center)
+                    AsyncImage(
+                        model = resolveListingImageModel(context, listingImages.firstOrNull()?.imagePath),
+                        contentDescription = "Property image",
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 
@@ -193,26 +196,7 @@ fun ListingDetailScreen(
                         fontWeight = FontWeight.Bold
                     )
 
-                    // Handle amenities (might be comma separated or JSON)
-                    val amenitiesList = try {
-                        if (currentListing.amenities.startsWith("[")) {
-                            // Simple manual parse for seeded JSON
-                            currentListing.amenities.removeSurrounding("[", "]")
-                                .split(",")
-                                .map { it.trim().removeSurrounding("\"") }
-                                .filter { it.isNotEmpty() }
-                        } else {
-                            currentListing.amenities
-                                .split(",")
-                                .map { it.trim() }
-                                .filter { it.isNotEmpty() }
-                        }
-                    } catch (e: Exception) {
-                        currentListing.amenities
-                            .split(",")
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                    }
+                    val amenitiesList = parseStoredAmenities(currentListing.amenities)
 
                     Column(modifier = Modifier.padding(top = 8.dp)) {
                         amenitiesList.forEach { amenity ->
@@ -298,6 +282,7 @@ fun ListingDetailScreen(
         }
     }
 }
+
 
 @Composable
 fun DetailRow(label: String, value: String) {
