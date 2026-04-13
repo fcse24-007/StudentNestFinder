@@ -119,12 +119,13 @@ fun AddListingScreen(
                 )
             )
 
-                OutlinedTextField(
+            OutlinedTextField(
                     value = description,
                     onValueChange = { description = InputValidator.sanitizeText(it, 1000) },
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
+                maxLines = 8,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = PrimaryColor,
                     unfocusedBorderColor = BorderLightColor,
@@ -253,7 +254,11 @@ fun AddListingScreen(
                                 price = price.toFloatOrNull() ?: 0f,
                                 location = location.trim(),
                                 type = type,
-                                amenities = amenities.trim(),
+                                amenities = amenities
+                                    .split(",")
+                                    .map { it.trim() }
+                                    .filter { it.isNotEmpty() }
+                                    .joinToString(", "),
                                 depositAmount = deposit.toIntOrNull() ?: 0,
                                 availabilityDate = existingListing?.availabilityDate ?: "2026-05-01",
                                 status = status,

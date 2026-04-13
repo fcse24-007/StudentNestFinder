@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 
 @Composable
 fun AppOverflowMenu(
+    showSettings: Boolean = true,
     onSettingsClick: () -> Unit,
     onHelpClick: () -> Unit,
     onFaqClick: () -> Unit,
@@ -25,13 +26,15 @@ fun AppOverflowMenu(
         Icon(Icons.Default.MoreVert, contentDescription = "Menu")
     }
     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-        DropdownMenuItem(
-            text = { Text("Settings") },
-            onClick = {
-                expanded = false
-                onSettingsClick()
-            }
-        )
+        if (showSettings) {
+            DropdownMenuItem(
+                text = { Text("Settings") },
+                onClick = {
+                    expanded = false
+                    onSettingsClick()
+                }
+            )
+        }
         DropdownMenuItem(
             text = { Text("Help") },
             onClick = {

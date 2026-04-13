@@ -184,12 +184,22 @@ fun AppNavigation(
                     val target = if (role == "PROVIDER") Screen.ProviderDashboard.route else Screen.Home.route
                     navController.navigate(target) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )
         }
 
         composable(Screen.Home.route) {
+            if (currentUser == null) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Auth.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+                return@composable
+            }
             val homeViewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
                 isProvider = currentUser?.role == "PROVIDER",

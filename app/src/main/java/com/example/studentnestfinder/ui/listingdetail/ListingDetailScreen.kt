@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.example.studentnestfinder.R
 import com.example.studentnestfinder.db.dao.ListingDao
 import com.example.studentnestfinder.db.dao.ReservationDao
 import com.example.studentnestfinder.db.dao.UserDao
@@ -29,6 +30,8 @@ import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
 import com.example.studentnestfinder.ui.theme.SecondaryColor
 import com.example.studentnestfinder.ui.theme.TextSecondaryColor
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,7 +110,13 @@ fun ListingDetailScreen(
                         .height(250.dp)
                         .background(BorderLightColor)
                 ) {
-                    Text("Property Image", color = TextSecondaryColor, modifier = Modifier.align(Alignment.Center))
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_property_placeholder),
+                        contentDescription = "Property image placeholder",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .align(Alignment.Center)
+                    )
                 }
 
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -191,11 +200,18 @@ fun ListingDetailScreen(
                             currentListing.amenities.removeSurrounding("[", "]")
                                 .split(",")
                                 .map { it.trim().removeSurrounding("\"") }
+                                .filter { it.isNotEmpty() }
                         } else {
-                            currentListing.amenities.split(", ")
+                            currentListing.amenities
+                                .split(",")
+                                .map { it.trim() }
+                                .filter { it.isNotEmpty() }
                         }
                     } catch (e: Exception) {
-                        listOf(currentListing.amenities)
+                        currentListing.amenities
+                            .split(",")
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
                     }
 
                     Column(modifier = Modifier.padding(top = 8.dp)) {

@@ -12,9 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.Image
+import com.example.studentnestfinder.R
 import com.example.studentnestfinder.db.entities.Listing
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
 import com.example.studentnestfinder.ui.theme.BorderLightColor
@@ -101,7 +104,13 @@ fun ListingCard(listing: Listing, onClick: () -> Unit) {
                     .height(180.dp)
                     .background(BorderLightColor)
             ) {
-                Text("Property Image", color = TextSecondaryColor, modifier = Modifier.align(Alignment.Center))
+                Image(
+                    painter = painterResource(id = R.drawable.ic_property_placeholder),
+                    contentDescription = "Property image placeholder",
+                    modifier = Modifier
+                        .size(72.dp)
+                        .align(Alignment.Center)
+                )
 
                 Surface(
                     modifier = Modifier
@@ -222,6 +231,7 @@ fun HomeTopBar(
                 Icon(Icons.Default.Settings, contentDescription = "Settings", tint = NeutralColor)
             }
             AppOverflowMenu(
+                showSettings = false,
                 onSettingsClick = onProfileClick,
                 onHelpClick = onHelpClick,
                 onFaqClick = onFaqClick,

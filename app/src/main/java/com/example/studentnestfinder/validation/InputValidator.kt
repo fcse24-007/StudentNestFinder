@@ -8,7 +8,7 @@ object InputValidator {
     private val providerIdRegex = Regex("^PRV\\d{3}$")
 
     fun sanitizeText(input: String, maxLength: Int = 255): String =
-        input.trim().take(maxLength)
+        input.take(maxLength)
 
     fun validateLogin(studentId: String, password: String): String? {
         val normalizedId = studentId.trim()
@@ -27,7 +27,7 @@ object InputValidator {
         university: String
     ): String? {
         validateLogin(studentId, password)?.let { return it }
-        if (sanitizeText(name, 100).length < 2) return "Please enter your full name."
+        if (sanitizeText(name, 100).trim().length < 2) return "Please enter your full name."
         if (!emailRegex.matches(email.trim())) return "Please enter a valid email."
         if (role !in setOf("STUDENT", "PROVIDER")) return "Invalid role selected."
         if (role == "STUDENT" && university.isBlank()) return "Please select your institution."
@@ -42,9 +42,9 @@ object InputValidator {
         deposit: String,
         distance: String
     ): String? {
-        if (sanitizeText(title, 120).length < 3) return "Title must be at least 3 characters."
-        if (sanitizeText(description, 1000).length < 10) return "Description must be at least 10 characters."
-        if (sanitizeText(location, 120).length < 2) return "Please enter a valid location."
+        if (sanitizeText(title, 120).trim().length < 3) return "Title must be at least 3 characters."
+        if (sanitizeText(description, 1000).trim().length < 10) return "Description must be at least 10 characters."
+        if (sanitizeText(location, 120).trim().length < 2) return "Please enter a valid location."
         val parsedPrice = price.toFloatOrNull()
         if (parsedPrice == null || parsedPrice <= 0f) return "Price must be a positive number."
         val parsedDeposit = deposit.toIntOrNull()
@@ -55,7 +55,7 @@ object InputValidator {
     }
 
     fun validateCardPayment(cardholder: String, cardNumber: String, cardExpiry: String, cardCvv: String): String? {
-        if (sanitizeText(cardholder, 120).length < 2) return "Enter cardholder name."
+        if (sanitizeText(cardholder, 120).trim().length < 2) return "Enter cardholder name."
         if (!cardNumber.matches(Regex("^\\d{16}$"))) return "Card number must be 16 digits."
         if (!cardExpiry.matches(Regex("^(0[1-9]|1[0-2])/\\d{2}$"))) return "Expiry must be in MM/YY format."
         if (!cardCvv.matches(Regex("^\\d{3,4}$"))) return "CVV must be 3 or 4 digits."
@@ -79,7 +79,7 @@ object InputValidator {
     }
 
     fun validateChatMessage(message: String): String? {
-        val sanitized = sanitizeText(message, 500)
+        val sanitized = sanitizeText(message, 500).trim()
         if (sanitized.isBlank()) return "Message cannot be empty."
         return null
     }
