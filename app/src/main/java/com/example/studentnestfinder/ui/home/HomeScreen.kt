@@ -11,10 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.example.studentnestfinder.db.dao.ListingImageDao
@@ -69,9 +68,9 @@ fun HomeScreen(
             contentPadding = PaddingValues(0.dp)
         ) {
             item {
-                Text("Find accommodation by location", color = NeutralColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Find accommodation by location", color = NeutralColor, style = MaterialTheme.typography.titleLarge)
                 state.error?.let {
-                    Text(it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
+                    Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
                 }
                 LazyRow(modifier = Modifier.padding(vertical = 12.dp)) {
                     items(locations) { location ->
@@ -103,7 +102,8 @@ fun ListingCard(listing: Listing, listingImageDao: ListingImageDao, onClick: () 
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
             Box(
@@ -115,21 +115,22 @@ fun ListingCard(listing: Listing, listingImageDao: ListingImageDao, onClick: () 
                 AsyncImage(
                     model = resolveListingImageModel(context, listingImages.firstOrNull()?.imagePath),
                     contentDescription = "Property image",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
 
                 Surface(
                     modifier = Modifier
                         .padding(12.dp)
                         .align(Alignment.TopEnd),
-                    color = PrimaryColor,
+                    color = MaterialTheme.colorScheme.tertiary,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         "P${listing.price.toInt()}",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onTertiary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }
@@ -138,8 +139,7 @@ fun ListingCard(listing: Listing, listingImageDao: ListingImageDao, onClick: () 
                 Text(
                     listing.title,
                     color = NeutralColor,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleMedium
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -148,7 +148,7 @@ fun ListingCard(listing: Listing, listingImageDao: ListingImageDao, onClick: () 
                         tint = TextSecondaryColor,
                         modifier = Modifier.size(14.dp)
                     )
-                    Text(listing.location, color = TextSecondaryColor, fontSize = 14.sp)
+                    Text(listing.location, color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.width(16.dp))
                     Icon(
                         Icons.Default.Info,
@@ -159,7 +159,7 @@ fun ListingCard(listing: Listing, listingImageDao: ListingImageDao, onClick: () 
                     Text(
                         "${listing.distanceToCampusKm}km to Campus",
                         color = TextSecondaryColor,
-                        fontSize = 14.sp
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -178,7 +178,7 @@ fun UniversityChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
     ) {
         Text(
             label,
-            color = if (isSelected) Color.White else NeutralColor,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else NeutralColor,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
@@ -216,8 +216,8 @@ fun HomeTopBar(
                     .height(50.dp),
                 shape = RoundedCornerShape(25.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     focusedTextColor = NeutralColor,
                     unfocusedTextColor = NeutralColor,
                     focusedIndicatorColor = Color.Transparent,

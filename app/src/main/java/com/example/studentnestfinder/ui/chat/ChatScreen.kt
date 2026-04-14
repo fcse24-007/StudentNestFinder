@@ -16,10 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.studentnestfinder.db.ChatRepository
 import com.example.studentnestfinder.db.dao.UserDao
@@ -92,8 +89,8 @@ fun ChatScreen(
                 },
                 title = {
                     Column {
-                        Text(recipientName, color = NeutralColor, fontWeight = FontWeight.Bold)
-                        Text("Active now", color = PrimaryColor, fontSize = 12.sp)
+                        Text(recipientName, color = NeutralColor, style = MaterialTheme.typography.titleSmall)
+                        Text("Active now", color = PrimaryColor, style = MaterialTheme.typography.labelSmall)
                     }
                 },
                 actions = {
@@ -181,12 +178,12 @@ fun ChatScreen(
                     },
                     modifier = Modifier
                         .size(48.dp)
-                        .background(PrimaryColor, shape = RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(24.dp))
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Send",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -194,7 +191,7 @@ fun ChatScreen(
             messageError?.let {
                 Text(
                     text = it,
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
@@ -219,22 +216,23 @@ fun ChatMessageBubble(message: ChatMessageEntity, isCurrentUser: Boolean) {
                 bottomEnd = 16.dp
             ),
             colors = CardDefaults.cardColors(
-                containerColor = if (isCurrentUser) PrimaryColor else Color.White
-            )
+                containerColor = if (isCurrentUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
                     message.message,
-                    color = if (isCurrentUser) Color.White else NeutralColor,
-                    fontSize = 14.sp
+                    color = if (isCurrentUser) MaterialTheme.colorScheme.onPrimary else NeutralColor,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(message.timestamp)),
-                    color = if (isCurrentUser) Color.White.copy(alpha = 0.7f) else TextSecondaryColor,
-                    fontSize = 11.sp
+                    color = if (isCurrentUser) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f) else TextSecondaryColor,
+                    style = MaterialTheme.typography.labelSmall
                 )
             }
         }
@@ -269,7 +267,7 @@ fun ChatListScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NeutralColor)
                     }
                 },
-                title = { Text("Messages", color = NeutralColor, fontWeight = FontWeight.Bold) },
+                title = { Text("Messages", color = NeutralColor, style = MaterialTheme.typography.titleMedium) },
                 actions = {
                     AppOverflowMenu(
                         onSettingsClick = onSettingsClick,
@@ -322,7 +320,8 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -339,12 +338,12 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
                 Surface(
                     modifier = Modifier.size(48.dp),
                     shape = RoundedCornerShape(24.dp),
-                    color = PrimaryColor
+                    color = MaterialTheme.colorScheme.primary
                 ) {
                     Icon(
                         Icons.Default.Person,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -353,13 +352,12 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
                     Text(
                         conversation.name,
                         color = NeutralColor,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleSmall
                     )
                     Text(
                         conversation.lastMessage,
                         color = TextSecondaryColor,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         modifier = Modifier.widthIn(max = 200.dp)
                     )
@@ -373,20 +371,19 @@ fun ConversationItem(conversation: ChatConversation, onClick: () -> Unit) {
                 Text(
                     conversation.time,
                     color = TextSecondaryColor,
-                    fontSize = 12.sp
+                    style = MaterialTheme.typography.labelSmall
                 )
                 Surface(
                     modifier = Modifier
                         .size(20.dp)
                         .padding(top = 4.dp),
                     shape = RoundedCornerShape(10.dp),
-                    color = PrimaryColor
+                    color = MaterialTheme.colorScheme.primary
                 ) {
                     Text(
                         "1",
-                        color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.labelSmall
                     )
                 }
             }

@@ -16,15 +16,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
 import com.example.studentnestfinder.ui.theme.SecondaryColor
@@ -114,12 +113,13 @@ fun FaqScreen(
 private fun HelpCard(title: String, body: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            Text(title, color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(title, color = PrimaryColor, style = MaterialTheme.typography.titleSmall)
             Spacer(modifier = Modifier.height(6.dp))
-            Text(body, color = TextSecondaryColor, fontSize = 14.sp)
+            Text(body, color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

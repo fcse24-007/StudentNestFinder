@@ -93,7 +93,7 @@ fun AppNavigation(
                 ) {
                     Text(
                         text = "SNF",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 10.dp)

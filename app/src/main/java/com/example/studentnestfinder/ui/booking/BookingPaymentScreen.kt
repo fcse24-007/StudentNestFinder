@@ -11,11 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
 import com.example.studentnestfinder.ui.theme.BorderLightColor
@@ -93,10 +91,10 @@ fun BookingPaymentScreen(
                     }
                     
                     if (state.error != null) {
-                        Text(state.error!!, color = Color.Red, modifier = Modifier.padding(bottom = 16.dp))
+                        Text(state.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(bottom = 16.dp))
                     }
                     paymentError?.let {
-                        Text(it, color = Color.Red, modifier = Modifier.padding(bottom = 16.dp))
+                        Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(bottom = 16.dp))
                     }
 
                     Card(
@@ -104,14 +102,14 @@ fun BookingPaymentScreen(
                             .fillMaxWidth()
                             .padding(bottom = 24.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 "Booking Summary",
                                 color = NeutralColor,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.titleMedium
                             )
 
                             Spacer(modifier = Modifier.height(12.dp))
@@ -131,8 +129,7 @@ fun BookingPaymentScreen(
                     Text(
                         "Payment Information",
                         color = NeutralColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
@@ -195,7 +192,7 @@ fun BookingPaymentScreen(
                         Text(
                             "By confirming, you agree to the booking terms and conditions.",
                             color = TextSecondaryColor,
-                            fontSize = 12.sp
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
 
@@ -225,23 +222,20 @@ fun BookingPaymentScreen(
                     ) {
                         Text(
                             "Confirm Payment (P${listing.depositAmount})",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
-                    Button(
+                    OutlinedButton(
                         onClick = onCancel,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
                             .padding(top = 12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = BorderLightColor
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Cancel", color = NeutralColor)
+                        Text("Cancel")
                     }
                 }
             }
@@ -264,13 +258,13 @@ fun SummaryRow(label: String, value: String, isTotal: Boolean = false) {
         Text(
             label,
             color = TextSecondaryColor,
-            fontSize = if (isTotal) 16.sp else 14.sp,
+            style = if (isTotal) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
             fontWeight = if (isTotal) FontWeight.Bold else FontWeight.Normal
         )
         Text(
             value,
             color = if (isTotal) PrimaryColor else NeutralColor,
-            fontSize = if (isTotal) 16.sp else 14.sp,
+            style = if (isTotal) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
             fontWeight = if (isTotal) FontWeight.Bold else FontWeight.Normal
         )
     }
@@ -336,12 +330,12 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
             Surface(
                 modifier = Modifier.size(80.dp),
                 shape = RoundedCornerShape(50),
-                color = PrimaryColor
+                color = MaterialTheme.colorScheme.primary
             ) {
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -351,8 +345,7 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
             Text(
                 "Payment Successful",
                 color = NeutralColor,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineSmall
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -360,7 +353,7 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
             Text(
                 "Your booking has been confirmed",
                 color = TextSecondaryColor,
-                fontSize = 14.sp
+                style = MaterialTheme.typography.bodyMedium
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -368,7 +361,8 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     ReceiptRow("Receipt Number:", receiptNumber)
@@ -390,7 +384,7 @@ fun ReceiptScreen(receiptNumber: String, onClose: () -> Unit) {
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Continue to Chat", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Continue to Chat", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -406,8 +400,8 @@ fun ReceiptRow(label: String, value: String) {
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, color = TextSecondaryColor, fontSize = 14.sp)
-        Text(value, color = PrimaryColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
+        Text(value, color = PrimaryColor, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }
 
