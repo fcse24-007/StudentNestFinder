@@ -1,13 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.StudentNestFinder" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">#E8896E</item>
-        <item name="colorOnPrimary">#5C1900</item>
-        <item name="colorSecondary">#74B896</item>
-        <item name="colorOnSecondary">#003920</item>
-        <item name="android:colorBackground">#1C1512</item>
-        <item name="colorSurface">#2A2319</item>
-        <item name="colorOnBackground">#EDE0D4</item>
-        <item name="colorOnSurface">#EDE0D4</item>
-        <item name="colorError">#FFB4A9</item>
+        <item name="colorPrimary">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/on_primary_dark</item>
+        <item name="colorSecondary">@color/secondary_dark</item>
+        <item name="colorOnSecondary">@color/on_secondary_dark</item>
+        <item name="android:colorBackground">@color/background_dark</item>
+        <item name="colorSurface">@color/surface_dark</item>
+        <item name="colorOnBackground">@color/on_background_dark</item>
+        <item name="colorOnSurface">@color/on_background_dark</item>
+        <item name="colorError">@color/error_dark</item>
     </style>
 </resources>

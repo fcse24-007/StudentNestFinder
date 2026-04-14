@@ -37,4 +37,14 @@
     <!-- Legacy (kept for compatibility) -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Dark theme variants (used by values-night/themes.xml) -->
+    <color name="primary_dark">#E8896E</color>
+    <color name="on_primary_dark">#5C1900</color>
+    <color name="secondary_dark">#74B896</color>
+    <color name="on_secondary_dark">#003920</color>
+    <color name="background_dark">#1C1512</color>
+    <color name="surface_dark">#2A2319</color>
+    <color name="on_background_dark">#EDE0D4</color>
+    <color name="error_dark">#FFB4A9</color>
 </resources>

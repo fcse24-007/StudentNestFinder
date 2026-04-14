@@ -49,6 +49,9 @@ val TextSecondaryColor = Color(0xFF6B5E54)
 /** Dusty Border – subtle borders and separators. */
 val BorderLightColor = Color(0xFFE2DCD5)
 
+/** Warm sand tint used for input/chip surfaces in the light theme. */
+val SurfaceVariantColor = Color(0xFFF0EBE5)
+
 /** Mokolodi Green – success / available states. */
 val SuccessColor = Color(0xFF2F6B4A)
 
@@ -97,7 +100,7 @@ private val LightColors = lightColorScheme(
     onBackground     = TextPrimaryColor,
     surface          = SurfaceLightColor,
     onSurface        = TextPrimaryColor,
-    surfaceVariant   = Color(0xFFF0EBE5),
+    surfaceVariant   = SurfaceVariantColor,
     onSurfaceVariant = TextSecondaryColor,
     error            = ErrorColor,
     onError          = Color.White,
