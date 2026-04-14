@@ -16,16 +16,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.studentnestfinder.db.dao.ListingDao
 import com.example.studentnestfinder.db.dao.ReservationDao
 import com.example.studentnestfinder.db.entities.Listing
 import com.example.studentnestfinder.db.entities.ProviderReservationDetails
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
-import com.example.studentnestfinder.ui.theme.ErrorColor
 import com.example.studentnestfinder.ui.theme.NeutralColor
 import com.example.studentnestfinder.ui.theme.PrimaryColor
 import com.example.studentnestfinder.ui.theme.SecondaryColor
@@ -101,7 +98,7 @@ fun ProviderDashboardScreen(
                 containerColor = PrimaryColor,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Listing", tint = Color.White)
+                Icon(Icons.Default.Add, contentDescription = "Add Listing", tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
     ) { padding ->
@@ -113,7 +110,7 @@ fun ProviderDashboardScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                Text("Your Managed Listings", color = NeutralColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("Your Managed Listings", color = NeutralColor, style = MaterialTheme.typography.titleLarge)
             }
             if (listings.isEmpty()) {
                 item {
@@ -132,7 +129,7 @@ fun ProviderDashboardScreen(
             }
             item {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Recent Reservations", color = NeutralColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("Recent Reservations", color = NeutralColor, style = MaterialTheme.typography.titleLarge)
             }
             if (reservations.isEmpty()) {
                 item {
@@ -158,7 +155,8 @@ fun ProviderListingCard(
             .fillMaxWidth()
             .clickable { onEditClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -168,9 +166,9 @@ fun ProviderListingCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(listing.title, color = NeutralColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text("Status: ${listing.status}", color = if (listing.status == "RESERVED") ErrorColor else SuccessColor, fontSize = 12.sp)
-                Text("Price: P${listing.price.toInt()}", color = TextSecondaryColor, fontSize = 12.sp)
+                Text(listing.title, color = NeutralColor, style = MaterialTheme.typography.titleSmall)
+                Text("Status: ${listing.status}", color = if (listing.status == "RESERVED") MaterialTheme.colorScheme.error else SuccessColor, style = MaterialTheme.typography.bodySmall)
+                Text("Price: P${listing.price.toInt()}", color = TextSecondaryColor, style = MaterialTheme.typography.bodySmall)
             }
 
             Row {
@@ -190,14 +188,15 @@ private fun ProviderReservationCard(reservation: ProviderReservationDetails) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            Text(reservation.listingTitle, color = NeutralColor, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Text("Student: ${reservation.studentName}", color = TextSecondaryColor, fontSize = 13.sp)
-            Text("Student ID: ${reservation.studentIdentifier}", color = TextSecondaryColor, fontSize = 13.sp)
-            Text("Reference: ${reservation.referenceNumber}", color = TextSecondaryColor, fontSize = 12.sp)
-            Text("Status: ${reservation.status}", color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text(reservation.listingTitle, color = NeutralColor, style = MaterialTheme.typography.titleSmall)
+            Text("Student: ${reservation.studentName}", color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
+            Text("Student ID: ${reservation.studentIdentifier}", color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
+            Text("Reference: ${reservation.referenceNumber}", color = TextSecondaryColor, style = MaterialTheme.typography.bodySmall)
+            Text("Status: ${reservation.status}", color = PrimaryColor, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
         }
     }
 }

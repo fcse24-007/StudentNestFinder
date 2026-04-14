@@ -22,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,10 +37,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.studentnestfinder.db.dao.ReservationDao
 import com.example.studentnestfinder.db.entities.StudentReservationDetails
 import com.example.studentnestfinder.ui.navigation.AppOverflowMenu
@@ -148,22 +147,23 @@ private fun StudentReservationCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(reservation.listingTitle, color = NeutralColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text("Landlord: ${reservation.providerName}", color = TextSecondaryColor, fontSize = 13.sp)
-            Text("Location: ${reservation.location}", color = TextSecondaryColor, fontSize = 13.sp)
-            Text("Monthly rent: P ${reservation.monthlyRent.toInt()}", color = TextSecondaryColor, fontSize = 13.sp)
-            Text("Reservation ref: ${reservation.referenceNumber}", color = TextSecondaryColor, fontSize = 13.sp)
+            Text(reservation.listingTitle, color = NeutralColor, style = MaterialTheme.typography.titleSmall)
+            Text("Landlord: ${reservation.providerName}", color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
+            Text("Location: ${reservation.location}", color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
+            Text("Monthly rent: P ${reservation.monthlyRent.toInt()}", color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
+            Text("Reservation ref: ${reservation.referenceNumber}", color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
             Text(
                 "Reserved: ${
                     SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(reservation.reservedAt))
                 }",
                 color = TextSecondaryColor,
-                fontSize = 13.sp
+                style = MaterialTheme.typography.bodyMedium
             )
-            Text("Status: ${reservation.status}", color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text("Status: ${reservation.status}", color = PrimaryColor, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
             Spacer(modifier = Modifier.height(10.dp))
             Button(onClick = onOpenChat, shape = RoundedCornerShape(10.dp)) {
                 Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null)

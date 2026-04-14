@@ -12,10 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -118,21 +119,32 @@ fun ListingDetailScreen(
                     AsyncImage(
                         model = resolveListingImageModel(context, listingImages.firstOrNull()?.imagePath),
                         contentDescription = "Property image",
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    // Gradient overlay for readability
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)),
+                                    startY = 0f
+                                )
+                            )
                     )
                 }
 
                 Column(modifier = Modifier.padding(16.dp)) {
                     Surface(
-                        color = PrimaryColor,
+                        color = MaterialTheme.colorScheme.tertiary,
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             "P${currentListing.price.toInt()} / Month",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onTertiary,
                             modifier = Modifier.padding(12.dp),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
 
@@ -141,8 +153,7 @@ fun ListingDetailScreen(
                     Text(
                         currentListing.title,
                         color = NeutralColor,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.headlineSmall
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -155,7 +166,7 @@ fun ListingDetailScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(currentListing.location, color = TextSecondaryColor, fontSize = 14.sp)
+                        Text(currentListing.location, color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -163,13 +174,12 @@ fun ListingDetailScreen(
                     Text(
                         "About",
                         color = NeutralColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Text(
                         currentListing.description,
                         color = TextSecondaryColor,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 8.dp)
                     )
 
@@ -178,8 +188,7 @@ fun ListingDetailScreen(
                     Text(
                         "Property Details",
                         color = NeutralColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleLarge
                     )
 
                     DetailRow("Type:", currentListing.type)
@@ -192,8 +201,7 @@ fun ListingDetailScreen(
                     Text(
                         "Amenities",
                         color = NeutralColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleLarge
                     )
 
                     val amenitiesList = parseStoredAmenities(currentListing.amenities)
@@ -213,7 +221,7 @@ fun ListingDetailScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(amenity, color = TextSecondaryColor, fontSize = 13.sp)
+                                Text(amenity, color = TextSecondaryColor, style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -226,25 +234,22 @@ fun ListingDetailScreen(
                             .padding(bottom = 24.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Button(
+                        OutlinedButton(
                             onClick = { onChatClick(currentListing.providerId, providerName) },
                             enabled = canChatWithLandlord,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = BorderLightColor
-                            ),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.Chat,
                                 contentDescription = null,
-                                tint = NeutralColor,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Chat", color = NeutralColor)
+                            Text("Chat")
                         }
                         Button(
                             onClick = { onReserveClick(currentListing.id) },
@@ -264,7 +269,7 @@ fun ListingDetailScreen(
                                     !canReserve -> "Limit Reached"
                                     else -> "Reserve Now"
                                 },
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -273,7 +278,7 @@ fun ListingDetailScreen(
                         Text(
                             "Reserve this property first to chat with the landlord.",
                             color = TextSecondaryColor,
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(top = 6.dp)
                         )
                     }
@@ -292,8 +297,8 @@ fun DetailRow(label: String, value: String) {
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, color = TextSecondaryColor, fontSize = 14.sp)
-        Text(value, color = NeutralColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = TextSecondaryColor, style = MaterialTheme.typography.bodyMedium)
+        Text(value, color = NeutralColor, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }
 

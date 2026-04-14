@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -177,14 +176,15 @@ fun AddListingScreen(
                     .height(180.dp)
                     .border(1.dp, BorderLightColor, RoundedCornerShape(12.dp)),
                 shape = RoundedCornerShape(12.dp),
-                color = Color.White
+                color = MaterialTheme.colorScheme.surface
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     if (!selectedImageUri.isNullOrBlank()) {
                         AsyncImage(
                             model = resolveListingImageModel(context, selectedImageUri),
                             contentDescription = "Selected property image",
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
                         )
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -282,7 +282,7 @@ fun AddListingScreen(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(t.replace("_", " "), color = if (isSelected) Color.White else NeutralColor, fontSize = 10.sp)
+                            Text(t.replace("_", " "), color = if (isSelected) MaterialTheme.colorScheme.onPrimary else NeutralColor, fontSize = 10.sp)
                         }
                     }
                 }
@@ -305,7 +305,7 @@ fun AddListingScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
             formError?.let {
-                Text(text = it, color = Color.Red)
+                Text(text = it, color = MaterialTheme.colorScheme.error)
             }
 
             Button(
@@ -365,7 +365,7 @@ fun AddListingScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(if (listingId == null) "Create Listing" else "Save Listing", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(if (listingId == null) "Create Listing" else "Save Listing", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
             }
         }
     }

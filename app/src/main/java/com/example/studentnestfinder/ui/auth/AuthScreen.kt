@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.BorderStroke
 import com.example.studentnestfinder.db.entities.UserPreference
@@ -51,8 +50,7 @@ fun AuthScreen(viewModel: AuthViewModel, onNavigateHome: (role: String) -> Unit)
             Text(
                 text = if (state.isLogin) "Login" else "Sign Up",
                 color = NeutralColor,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineLarge
             )
 
             Text("Student Nest Finder Gaborone", color = TextSecondaryColor)
@@ -94,7 +92,7 @@ fun AuthScreen(viewModel: AuthViewModel, onNavigateHome: (role: String) -> Unit)
                 isPassword = true
             )
 
-            state.error?.let { Text(it, color = Color.Red, modifier = Modifier.padding(top = 8.dp)) }
+            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp)) }
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -104,8 +102,8 @@ fun AuthScreen(viewModel: AuthViewModel, onNavigateHome: (role: String) -> Unit)
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
             ) {
-                if (state.isLoading) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                else Text(if (state.isLogin) "Login" else "Create Account", color = Color.White, fontWeight = FontWeight.Bold)
+                if (state.isLoading) CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                else Text(if (state.isLogin) "Login" else "Create Account", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
             }
 
             TextButton(onClick = { viewModel.toggleMode() }) {
@@ -128,8 +126,8 @@ fun AuthInput(value: String, label: String, onValueChange: (String) -> Unit, ico
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
             focusedTextColor = NeutralColor,
             unfocusedTextColor = NeutralColor,
             cursorColor = PrimaryColor,
@@ -165,8 +163,8 @@ fun UniversityDropdown(selectedUniversity: String, onUniversitySelected: (String
             },
             modifier = Modifier.fillMaxWidth(),
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                 focusedTextColor = NeutralColor,
                 unfocusedTextColor = NeutralColor,
                 cursorColor = PrimaryColor,
@@ -178,7 +176,7 @@ fun UniversityDropdown(selectedUniversity: String, onUniversitySelected: (String
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(Color.White)
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
             universities.forEach { uni ->
                 DropdownMenuItem(
@@ -201,7 +199,7 @@ fun AuthTab(text: String, selected: Boolean, onClick: () -> Unit) {
         color = if (selected) PrimaryColor else Color.Transparent,
         border = if (selected) null else BorderStroke(1.dp, TextSecondaryColor)
     ) {
-        Text(text, color = if (selected) Color.White else NeutralColor, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+        Text(text, color = if (selected) MaterialTheme.colorScheme.onPrimary else NeutralColor, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
     }
 }
 
