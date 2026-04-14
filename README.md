@@ -273,16 +273,39 @@ Chat Screen
 → See message appear
 ```
 
-## Color Scheme
+## Color Scheme – Gaborone Edition
 
-| Element | Color | Hex |
-|---------|-------|-----|
-| Primary | Purple | #BB86FC |
-| Background | Dark | #121212 |
-| Surface | Dark Secondary | #1E1E1E |
-| Text | White | #FFFFFF |
-| Secondary Text | Gray | #CCCCCC |
-| Accent | Dark Tertiary | #252525 |
+| Role | Name | Hex | Usage |
+|------|------|-----|-------|
+| Primary | Gaborone Clay | `#B84A2D` | Buttons, active states, key accents |
+| Secondary | Mokolodi Green | `#2F6B4A` | FAB, success states, verification badge, chips |
+| Tertiary | Savanna Gold | `#D49A2A` | Price tags, "new" badges, rating stars |
+| Background | Soft Kalahari Sand | `#F9F6F0` | Main screen background |
+| Surface | Ivory White | `#FFFFFF` | Cards, sheets, dialogs |
+| On Primary | White | `#FFFFFF` | Text/icons on primary colour |
+| On Background | Charcoal Dusk | `#2E2E2E` | Primary text |
+| Subtext | Stone Gray | `#6B5E54` | Secondary text, captions, icons |
+| Error | Acacia Thorn Red | `#C13C3C` | Alerts, error messages |
+| Divider | Dusty Border | `#E2DCD5` | Borders, separators |
+
+### Typography
+
+The app uses a Material 3 `Typography` configuration built on the system **sans-serif** font stack
+(Roboto on most Android devices).  The code is structured to accept **SF Pro** font files when
+they are available under an appropriate licence:
+
+1. Place the `.ttf` / `.otf` files in `app/src/main/res/font/`.
+2. Declare a `FontFamily` in `AppTheme.kt` pointing to those files.
+3. Replace `FontFamily.Default` in `AppFontFamily` with the new family.
+
+### Switching the theme
+
+All colours and typography are centralised in:
+
+* `app/src/main/java/…/ui/theme/AppTheme.kt` – Compose colour scheme + typography
+* `app/src/main/res/values/colors.xml` – XML colour resources (for View-based theming)
+* `app/src/main/res/values/themes.xml` – light XML theme
+* `app/src/main/res/values-night/themes.xml` – dark XML theme
 
 ## Navigation Routes
 
