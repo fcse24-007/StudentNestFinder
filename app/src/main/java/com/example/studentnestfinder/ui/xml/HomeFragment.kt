@@ -48,6 +48,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val searchInput = view.findViewById<EditText>(R.id.searchInput)
         val listView = view.findViewById<ListView>(R.id.listingsList)
         val emptyText = view.findViewById<TextView>(R.id.emptyText)
+        val errorText = view.findViewById<TextView>(R.id.errorText)
         val logoutButton = view.findViewById<Button>(R.id.logoutButton)
         val adapter = ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1)
 
@@ -72,9 +73,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     adapter.addAll(state.listings.map { "${it.title} — P${it.price.toInt()} — ${it.location}" })
                     adapter.notifyDataSetChanged()
 
-                    val showEmpty = state.listings.isEmpty() && !state.isLoading
+                    val showError = !state.error.isNullOrBlank()
+                    val showEmpty = state.listings.isEmpty() && !state.isLoading && !showError
                     emptyText.isVisible = showEmpty
-                    emptyText.text = state.error ?: getString(R.string.no_listings_found)
+                    errorText.isVisible = showError
+                    errorText.text = state.error.orEmpty()
                 }
             }
         }

@@ -30,4 +30,11 @@
         android:layout_height="wrap_content"
         android:text="@string/no_listings_found"
         android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/errorText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/error"
+        android:visibility="gone" />
 </LinearLayout>

@@ -9,6 +9,7 @@
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="university">University</string>
+    <string name="default_university">University of Botswana</string>
     <string name="logout">Logout</string>
     <string name="search_listings">Search listings</string>
     <string name="no_listings_found">No listings found.</string>
