@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
     alias(libs.plugins.hilt.android)
 }
 
@@ -68,11 +67,6 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")        // Coroutine + Flow support
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    // ── Firebase (BOM manages versions automatically) ─────────────────
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-    implementation("com.google.firebase:firebase-firestore-ktx")  // Chat
-    implementation("com.google.firebase:firebase-auth-ktx")       // Optional: Firebase auth
-
     // ── ViewModel + Coroutines ────────────────────────────────────────
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
@@ -90,4 +84,3 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
-

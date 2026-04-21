@@ -17,7 +17,6 @@ import com.example.studentnestfinder.data.UserSession
 import com.example.studentnestfinder.db.AppDatabase
 import com.example.studentnestfinder.ui.navigation.AppNavigation
 import com.example.studentnestfinder.ui.theme.StudentNestTheme
-import com.google.firebase.FirebaseApp
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -27,13 +26,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        // Initialize Firebase
-        try {
-            FirebaseApp.initializeApp(this)
-        } catch (@Suppress("UNUSED_VARIABLE") e: Exception) {
-            // Firebase already initialized or no google-services.json
-        }
 
         // Initialize Room Database (shared singleton with seeded data)
         database = AppDatabase.getInstance(applicationContext)

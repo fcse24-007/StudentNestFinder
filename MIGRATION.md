@@ -112,3 +112,15 @@
   - `./gradlew clean build`
   - `./gradlew test`
 - Result in sandbox: build/test could not proceed due plugin resolution failure for `com.android.application` `8.2.2` before compilation.
+
+## Stage 2 Implementation Notes
+- Removed Firebase runtime initialization from `MainActivity`.
+- Removed Firebase Gradle plugin and Firebase dependencies from build configuration.
+- Removed `google-services.json` from app module.
+- Chat remains Room-backed local threads/messages with Flow observation.
+
+## Stage 2 Verification Notes
+- Commands attempted in this environment:
+  - `./gradlew clean build`
+  - `./gradlew test`
+- Result in sandbox: build/test still cannot proceed because `com.android.application` `8.2.2` plugin resolution fails before compilation.
