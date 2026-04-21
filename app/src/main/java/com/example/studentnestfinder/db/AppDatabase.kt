@@ -193,17 +193,11 @@ suspend fun seedListings(db: AppDatabase) {
     db.listingImageDao().insertAll(images)
 }
 
-private fun chatConversationId(userA: Int, userB: Int, listingId: Int): String {
-    val min = minOf(userA, userB)
-    val max = maxOf(userA, userB)
-    return "uid_${min}-${max}_listing_${listingId}"
-}
-
-suspend fun seedChatMessages(db: AppDatabase) {
+private suspend fun seedChatMessages(db: AppDatabase) {
     val initialMessages = listOf(
         ChatMessage(
             id = "seed-msg-1",
-            conversationId = chatConversationId(1, 51, 1),
+            conversationId = conversationIdFor(1, 51, 1),
             senderId = 1,
             receiverId = 51,
             listingId = 1,
@@ -213,7 +207,7 @@ suspend fun seedChatMessages(db: AppDatabase) {
         ),
         ChatMessage(
             id = "seed-msg-2",
-            conversationId = chatConversationId(1, 51, 1),
+            conversationId = conversationIdFor(1, 51, 1),
             senderId = 51,
             receiverId = 1,
             listingId = 1,
@@ -223,7 +217,7 @@ suspend fun seedChatMessages(db: AppDatabase) {
         ),
         ChatMessage(
             id = "seed-msg-3",
-            conversationId = chatConversationId(2, 52, 26),
+            conversationId = conversationIdFor(2, 52, 26),
             senderId = 2,
             receiverId = 52,
             listingId = 26,
