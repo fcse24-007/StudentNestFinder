@@ -98,3 +98,17 @@
   - `./gradlew clean build`
 - Result: failed during plugin resolution (`com.android.application` `8.2.2` not resolved from configured repositories in sandbox run).
 - No runtime/app code behavior changes were made in Stage 0; this PR focuses on migration diagnostics/documentation.
+
+## Stage 1 Implementation Notes
+- `ChatRepository` now uses Room as the single source of truth:
+  - Message sends persist directly to Room.
+  - Conversation observation reads directly from Room Flow.
+  - Read receipts update Room only.
+- Added local chat seed data in `AppDatabase` creation callback so chat screens have initial local conversations without Firebase.
+- Added focused unit tests for room-first chat behavior (`ChatRepositoryTest`).
+
+## Stage 1 Verification Notes
+- Commands attempted in this environment:
+  - `./gradlew clean build`
+  - `./gradlew test`
+- Result in sandbox: build/test could not proceed due plugin resolution failure for `com.android.application` `8.2.2` before compilation.
