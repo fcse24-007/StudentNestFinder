@@ -57,9 +57,8 @@
             android:id="@+id/universityInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/university"
+            android:hint="@string/default_university"
             android:inputType="text"
-            android:text="@string/default_university"
             android:visibility="gone" />
 
         <TextView
