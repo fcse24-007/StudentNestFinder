@@ -34,7 +34,7 @@ interface ChatMessageDao {
     @Query("SELECT COUNT(*) FROM chat_messages WHERE receiverId = :userId AND isRead = 0")
     fun getUnreadCount(userId: Int): Flow<Int>
 
-    // Called when Firestore pushes a batch sync — wipes and repopulates a conversation
+    // Clears a conversation history when needed
     @Query("DELETE FROM chat_messages WHERE conversationId = :conversationId")
     suspend fun clearConversation(conversationId: String)
 

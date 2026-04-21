@@ -21,7 +21,7 @@ import androidx.room.PrimaryKey
     ]
 )
 data class ChatMessage(
-    @PrimaryKey val id: String,          // Firebase document ID (UUID string)
+    @PrimaryKey val id: String,
     val conversationId: String,
     val senderId: Int,
     val receiverId: Int,
