@@ -76,10 +76,7 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
             viewModel.updatePassword(passwordInput.text.toString())
             viewModel.updateName(nameInput.text.toString())
             viewModel.updateEmail(emailInput.text.toString())
-            val university = universityInput.text.toString().ifBlank {
-                getString(R.string.default_university)
-            }
-            viewModel.updateUniversity(university)
+            viewModel.updateUniversity(universityInput.text.toString())
             if (viewModel.uiState.value.isLogin) viewModel.login() else viewModel.register()
         }
         switchModeButton.setOnClickListener { viewModel.toggleMode() }

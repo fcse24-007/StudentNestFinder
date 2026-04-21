@@ -19,12 +19,9 @@ class MainActivity : AppCompatActivity(),
     AuthFragment.Callbacks,
     HomeFragment.Callbacks,
     ListingDetailFragment.Callbacks {
-
-    private var notificationPermissionGranted = false
-
     private val requestNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> notificationPermissionGranted = granted }
+    ) { _ -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +44,6 @@ class MainActivity : AppCompatActivity(),
                 this,
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
-            notificationPermissionGranted = hasPermission
 
             if (!hasPermission) {
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
