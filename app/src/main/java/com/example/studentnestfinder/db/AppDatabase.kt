@@ -59,6 +59,7 @@ abstract class AppDatabase : RoomDatabase() {
                             val database = getInstance(context)
                             seedUsers(database)
                             seedListings(database)
+                            seedChatMessages(database)
                         }
                     }
                 })
@@ -190,4 +191,40 @@ suspend fun seedListings(db: AppDatabase) {
         )
     }
     db.listingImageDao().insertAll(images)
+}
+
+private suspend fun seedChatMessages(db: AppDatabase) {
+    val initialMessages = listOf(
+        ChatMessage(
+            id = "seed-msg-1",
+            conversationId = conversationIdFor(1, 51, 1),
+            senderId = 1,
+            receiverId = 51,
+            listingId = 1,
+            message = "Hi, is this room still available?",
+            isRead = true,
+            timestamp = System.currentTimeMillis() - 172_800_000L
+        ),
+        ChatMessage(
+            id = "seed-msg-2",
+            conversationId = conversationIdFor(1, 51, 1),
+            senderId = 51,
+            receiverId = 1,
+            listingId = 1,
+            message = "Yes, it is available from next month.",
+            isRead = false,
+            timestamp = System.currentTimeMillis() - 172_700_000L
+        ),
+        ChatMessage(
+            id = "seed-msg-3",
+            conversationId = conversationIdFor(2, 52, 26),
+            senderId = 2,
+            receiverId = 52,
+            listingId = 26,
+            message = "Can I schedule a viewing this weekend?",
+            isRead = true,
+            timestamp = System.currentTimeMillis() - 86_400_000L
+        )
+    )
+    db.chatMessageDao().insertAll(initialMessages)
 }
