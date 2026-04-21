@@ -70,7 +70,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 viewModel.uiState.collect { state ->
                     listings = state.listings
                     adapter.clear()
-                    adapter.addAll(state.listings.map { "${it.title} — P${it.price.toInt()} — ${it.location}" })
+                    adapter.addAll(
+                        state.listings.map {
+                            getString(
+                                R.string.listing_item_format,
+                                it.title,
+                                it.price.toInt(),
+                                it.location
+                            )
+                        }
+                    )
                     adapter.notifyDataSetChanged()
 
                     val showError = !state.error.isNullOrBlank()

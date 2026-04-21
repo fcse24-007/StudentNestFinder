@@ -13,6 +13,7 @@
     <string name="logout">Logout</string>
     <string name="search_listings">Search listings</string>
     <string name="no_listings_found">No listings found.</string>
+    <string name="listing_item_format">%1$s — P%2$d — %3$s</string>
     <string name="back">Back</string>
     <string name="listing_not_found">Listing not found.</string>
     <string name="listing_meta">%1$s • %2$s • P%3$d • %4$s</string>
