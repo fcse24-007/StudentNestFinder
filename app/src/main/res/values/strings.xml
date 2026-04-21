@@ -1,5 +1,20 @@
 <resources>
     <string name="app_name">StudentNestFinder</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="switch_to_register">Need an account? Register</string>
+    <string name="switch_to_login">Already have an account? Login</string>
+    <string name="student_id">Student ID</string>
+    <string name="full_name">Full Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="university">University</string>
+    <string name="logout">Logout</string>
+    <string name="search_listings">Search listings</string>
+    <string name="no_listings_found">No listings found.</string>
+    <string name="back">Back</string>
+    <string name="listing_not_found">Listing not found.</string>
+    <string name="listing_meta">%1$s • %2$s • P%3$d • %4$s</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_title">My Preferences</string>
