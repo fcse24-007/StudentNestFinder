@@ -124,3 +124,25 @@
   - `./gradlew clean build`
   - `./gradlew test`
 - Result in sandbox: build/test still cannot proceed because `com.android.application` `8.2.2` plugin resolution fails before compilation.
+
+## Stage 3 Implementation Notes
+- Replaced Compose app entry with XML/View-system entry in `MainActivity` using `setContentView`.
+- Introduced fragment-based XML navigation flow:
+  - `AuthFragment` (login/register with `AuthViewModel`)
+  - `HomeFragment` (listing search/list with `HomeViewModel`)
+  - `ListingDetailFragment` (Room-backed listing detail)
+- Updated `activity_main.xml` to host a `FragmentContainerView`.
+- Kept app runnable with a Room-backed login -> home -> listing-detail flow and logout path.
+
+## Stage 4 Implementation Notes
+- Removed Compose UI/navigation/theme source files:
+  - `ui/*Screen.kt`, `ui/navigation/*`, `ui/theme/AppTheme.kt`.
+- Removed Compose build features/dependencies from `app/build.gradle.kts`.
+- Removed Compose-related catalog entries from `gradle/libs.versions.toml`.
+- Added XML layouts and string resources required by the View-system flow.
+
+## Stage 3/4 Verification Notes
+- Commands attempted in this environment:
+  - `./gradlew clean build`
+  - `./gradlew test`
+- Result in sandbox: build/test still cannot proceed because `com.android.application` `8.2.2` plugin resolution fails before compilation.
